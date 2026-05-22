@@ -26,6 +26,15 @@ $tempDir/
 /storage/pail
 /storage/*.key
 
+# === Cachés que Laravel regenera en runtime (NO versionar) ===
+# Si se versionan, los paths/providers locales rompen el server.
+/bootstrap/cache/*.php
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*.php
+/storage/logs/*.log
+
 # === Hot reload de Vite (solo desarrollo local) ===
 /public/hot
 
