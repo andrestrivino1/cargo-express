@@ -1,0 +1,51 @@
+# === Secretos y configuración local (NUNCA subir) ===
+.env
+.env.backup
+.env.production
+/auth.json
+
+# === IDEs y editores ===
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
+.phpactor.json
+
+# === Claude Code (estado local) ===
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# === Carpetas temporales de Windows ===
+$tempDir/
+
+# === Dependencias y cachés que NO van al repo ===
+/node_modules
+/.phpunit.cache
+.phpunit.result.cache
+/storage/pail
+/storage/*.key
+
+# === Hot reload de Vite (solo desarrollo local) ===
+/public/hot
+
+# === Symlinks (se recrean en el server) ===
+/public/storage
+
+# === Logs y archivos temporales ===
+*.log
+.DS_Store
+Thumbs.db
+
+# === Homestead (entorno local Vagrant, no aplica en hosting) ===
+Homestead.json
+Homestead.yaml
+
+# === Archivos de despliegue local (no necesarios en server) ===
+app.zip
+deploy_build.ps1
+
+# === NOTA importante ===
+# vendor/ y public/build/ SÍ se incluyen en el repo.
+# Razón: hosting GoDaddy sin acceso SSH, no se puede correr
+# "composer install" ni "npm run build" en el servidor.
