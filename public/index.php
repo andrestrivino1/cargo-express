@@ -5,12 +5,18 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
-// Detect base path:
-// - Local dev: public/ lives inside the project root → ../
-// - Production (GoDaddy shared hosting): public_html/ is sibling of repositorio/ → ../repositorio/
-$basePath = file_exists(__DIR__ . '/../vendor/autoload.php')
-    ? __DIR__ . '/..'
-    : __DIR__ . '/../repositorio';
+// Detect base path. Tries (in order): local dev, then common production folder names.
+$basePath = null;
+foreach ([__DIR__ . '/..', __DIR__ . '/../repositorie', __DIR__ . '/../repositorio'] as $candidate) {
+    if (file_exists($candidate . '/vendor/autoload.php')) {
+        $basePath = $candidate;
+        break;
+    }
+}
+if ($basePath === null) {
+    http_response_code(500);
+    exit('Laravel base path not found. Checked: project root, ../repositorie, ../repositorio.');
+}
 
 // Determine if the application is in maintenance mode...
 if (file_exists($maintenance = $basePath . '/storage/framework/maintenance.php')) {
