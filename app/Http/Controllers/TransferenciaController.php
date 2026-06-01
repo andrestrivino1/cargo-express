@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateTransferenciaRequest;
 use App\Models\Referencia;
 use App\Models\Transferencia;
 use App\Models\UbicacionPatio;
 use App\Models\User;
+use App\Services\AuditoriaService;
 use App\Services\TransferenciaService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class TransferenciaController extends Controller
 {
@@ -141,6 +145,29 @@ class TransferenciaController extends Controller
         ]);
 
         return view('transferencias.show', compact('transferencia'));
+    }
+
+    /**
+     * Formulario de edición correctiva de una transferencia.
+     */
+    public function edit(Transferencia $transferencia): View
+    {
+        $transferencia->load('cambiosAuditoria.usuario', 'referenciaOrigen', 'clienteOrigen', 'clienteDestino');
+
+        return view('transferencias.editar', compact('transferencia'));
+    }
+
+    /**
+     * Actualiza datos descriptivos de una transferencia (sin revertir cantidades).
+     */
+    public function update(UpdateTransferenciaRequest $request, Transferencia $transferencia, AuditoriaService $auditoria): RedirectResponse
+    {
+        $transferencia->fill($request->validated());
+        $auditoria->registrarCambios($transferencia, $request->user());
+        $transferencia->save();
+
+        return redirect()->route('transferencias.show', $transferencia)
+            ->with('success', 'Transferencia actualizada correctamente.');
     }
 
     /**

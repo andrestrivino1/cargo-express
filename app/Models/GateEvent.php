@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Enums\GateEventTipo;
+use App\Traits\Auditable;
 use App\Traits\HasPhotos;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GateEvent extends Model
 {
-    use HasPhotos;
+    use Auditable, HasPhotos;
 
     protected $fillable = [
         'contenedor_id',

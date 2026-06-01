@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreGateInRequest;
+use App\Http\Requests\UpdateGateInRequest;
 use App\Models\GateEvent;
 use App\Models\OrdenServicio;
 use App\Models\Producto;
+use App\Services\AuditoriaService;
 use App\Services\GateInService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
@@ -55,6 +57,23 @@ class GateInController extends Controller
 
         return redirect()->route('gate-in.index')
             ->with('success', 'Ingreso registrado exitosamente.');
+    }
+
+    public function edit(GateEvent $gateEvent): View
+    {
+        $gateEvent->load('cambiosAuditoria.usuario', 'contenedor');
+
+        return view('gate-in.editar', compact('gateEvent'));
+    }
+
+    public function update(UpdateGateInRequest $request, GateEvent $gateEvent, AuditoriaService $auditoria): RedirectResponse
+    {
+        $gateEvent->fill($request->validated());
+        $auditoria->registrarCambios($gateEvent, $request->user());
+        $gateEvent->save();
+
+        return redirect()->route('gate-in.index')
+            ->with('success', 'Ingreso actualizado correctamente.');
     }
 
     public function buscarOrden(int $id): JsonResponse

@@ -62,6 +62,8 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
         Route::get('/crear', [SolicitudController::class, 'create'])->name('create')->middleware('permission:solicitudes.crear');
         Route::post('/', [SolicitudController::class, 'store'])->name('store')->middleware('permission:solicitudes.crear');
         Route::get('/{solicitud}', [SolicitudController::class, 'show'])->name('show');
+        Route::get('/{solicitud}/editar', [SolicitudController::class, 'edit'])->name('editar')->middleware('role:administrador|coordinador');
+        Route::put('/{solicitud}', [SolicitudController::class, 'update'])->name('update')->middleware('role:administrador|coordinador');
         Route::get('/{solicitud}/asignar', [SolicitudController::class, 'asignar'])->name('asignar')->middleware('permission:solicitudes.asignar');
         Route::post('/{solicitud}/orden-servicio', [OrdenServicioController::class, 'store'])->name('orden-servicio.store')->middleware('permission:solicitudes.asignar');
         Route::get('/{solicitud}/orden-servicio/pdf', [OrdenServicioController::class, 'pdf'])->name('orden-servicio.pdf');
@@ -74,6 +76,8 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
         Route::post('/', [GateInController::class, 'store'])->name('store')->middleware('permission:gate-in.crear');
         Route::get('/orden/{id}', [GateInController::class, 'buscarOrden'])->name('buscar-orden');
         Route::get('/{gateEvent}/pdf', [GateInController::class, 'resumenPdf'])->name('pdf');
+        Route::get('/{gateEvent}/editar', [GateInController::class, 'edit'])->name('editar')->middleware('role:administrador|coordinador');
+        Route::put('/{gateEvent}', [GateInController::class, 'update'])->name('update')->middleware('role:administrador|coordinador');
     });
 
     // Referencias (nested under contenedores)
@@ -93,6 +97,8 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
         Route::get('/crear', [VaciadoController::class, 'create'])->name('create')->middleware('permission:vaciado.programar');
         Route::post('/', [VaciadoController::class, 'store'])->name('store')->middleware('permission:vaciado.programar');
         Route::get('/{ordenVaciado}', [VaciadoController::class, 'show'])->name('show');
+        Route::get('/{ordenVaciado}/editar', [VaciadoController::class, 'edit'])->name('editar')->middleware('role:administrador|coordinador');
+        Route::put('/{ordenVaciado}', [VaciadoController::class, 'update'])->name('update')->middleware('role:administrador|coordinador');
         Route::post('/{ordenVaciado}/iniciar', [VaciadoController::class, 'iniciar'])->name('iniciar')->middleware('permission:vaciado.programar');
         Route::post('/{ordenVaciado}/finalizar', [VaciadoController::class, 'finalizar'])->name('finalizar')->middleware('permission:vaciado.programar');
         Route::post('/{ordenVaciado}/novedades', [NovedadController::class, 'store'])->name('novedades.store')->middleware('permission:vaciado.registrar-novedad');
@@ -117,6 +123,8 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
         Route::get('/entre-clientes', [TransferenciaController::class, 'createEntreClientes'])->name('entre-clientes.create');
         Route::post('/entre-clientes', [TransferenciaController::class, 'storeEntreClientes'])->name('entre-clientes.store');
         Route::get('/{transferencia}', [TransferenciaController::class, 'show'])->name('show');
+        Route::get('/{transferencia}/editar', [TransferenciaController::class, 'edit'])->name('editar')->middleware('role:administrador|coordinador');
+        Route::put('/{transferencia}', [TransferenciaController::class, 'update'])->name('update')->middleware('role:administrador|coordinador');
         Route::get('/{transferencia}/constancia', [TransferenciaController::class, 'constanciaPdf'])->name('constancia');
     });
 
@@ -127,12 +135,16 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
         Route::get('/export/pdf', [AlmacenamientoController::class, 'exportPdf'])->name('export.pdf');
         Route::get('/ubicar', [AlmacenamientoController::class, 'ubicar'])->name('ubicar')->middleware('permission:inventario.ubicar');
         Route::post('/ubicar', [AlmacenamientoController::class, 'asignarUbicacion'])->name('asignar-ubicacion')->middleware('permission:inventario.ubicar');
+        Route::get('/{referencia}/editar', [AlmacenamientoController::class, 'edit'])->name('editar')->middleware('role:administrador|coordinador');
+        Route::put('/{referencia}', [AlmacenamientoController::class, 'update'])->name('update')->middleware('role:administrador|coordinador');
     });
 
     // Gate Out
     Route::prefix('gate-out')->name('gate-out.')->middleware('permission:gate-out.ver')->group(function () {
         Route::get('/', [GateOutController::class, 'index'])->name('index');
         Route::get('/export/excel', [GateOutController::class, 'exportExcel'])->name('export.excel');
+        Route::get('/evento/{gateEvent}/editar', [GateOutController::class, 'edit'])->name('editar')->middleware('role:administrador|coordinador');
+        Route::put('/evento/{gateEvent}', [GateOutController::class, 'update'])->name('update')->middleware('role:administrador|coordinador');
         Route::get('/{contenedor}', [GateOutController::class, 'show'])->name('show');
         Route::post('/{contenedor}/limpieza', [GateOutController::class, 'registrarLimpieza'])->name('limpieza')->middleware('permission:gate-out.crear');
         Route::post('/{contenedor}/salida', [GateOutController::class, 'store'])->name('store')->middleware('permission:gate-out.crear');
@@ -146,6 +158,8 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
         Route::post('/', [EntregaController::class, 'store'])->name('store')->middleware('permission:entregas.crear');
         Route::get('/export/excel', [EntregaController::class, 'exportExcel'])->name('export.excel');
         Route::get('/{ordenCargue}', [EntregaController::class, 'show'])->name('show');
+        Route::get('/{ordenCargue}/editar', [EntregaController::class, 'edit'])->name('editar')->middleware('role:administrador|coordinador');
+        Route::put('/{ordenCargue}', [EntregaController::class, 'update'])->name('update')->middleware('role:administrador|coordinador');
         Route::post('/{ordenCargue}/tarja', [TarjaController::class, 'store'])->name('tarja.store')->middleware('permission:entregas.generar-tarja');
         Route::get('/tarjas/{tarja}', [TarjaController::class, 'show'])->name('tarja.show');
         Route::get('/tarjas/{tarja}/pdf', [TarjaController::class, 'pdf'])->name('tarja.pdf');

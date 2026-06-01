@@ -1,14 +1,21 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mb-4">
-    <h2><i class="bi bi-box-seam me-2"></i>Orden de Vaciado #{{ $ordenVaciado->id }}</h2>
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('vaciado.index') }}">Vaciado</a></li>
-            <li class="breadcrumb-item active">Orden #{{ $ordenVaciado->id }}</li>
-        </ol>
-    </nav>
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h2><i class="bi bi-box-seam me-2"></i>Orden de Vaciado #{{ $ordenVaciado->id }}</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ route('vaciado.index') }}">Vaciado</a></li>
+                <li class="breadcrumb-item active">Orden #{{ $ordenVaciado->id }}</li>
+            </ol>
+        </nav>
+    </div>
+    @role('administrador|coordinador')
+        <a href="{{ route('vaciado.editar', $ordenVaciado) }}" class="btn btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i> Editar
+        </a>
+    @endrole
 </div>
 
 <div class="row">

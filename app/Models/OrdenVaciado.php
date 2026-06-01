@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\OrdenVaciadoEstado;
+use App\Traits\Auditable;
 use App\Traits\HasPhotos;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OrdenVaciado extends Model
 {
-    use HasPhotos;
+    use Auditable, HasPhotos;
     protected $table = 'ordenes_vaciado';
 
     protected $fillable = [

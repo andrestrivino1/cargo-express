@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Exports\EntregasExport;
 use App\Http\Requests\StoreOrdenCargueRequest;
+use App\Http\Requests\UpdateOrdenCargueRequest;
 use App\Models\OrdenCargue;
 use App\Models\User;
+use App\Services\AuditoriaService;
 use App\Services\EntregaService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -64,6 +67,30 @@ class EntregaController extends Controller
             ->get();
 
         return view('entregas.show', compact('ordenCargue', 'referencias'));
+    }
+
+    /**
+     * Formulario de edición correctiva de una orden de cargue (entrega).
+     */
+    public function edit(OrdenCargue $ordenCargue): View
+    {
+        $ordenCargue->load('cambiosAuditoria.usuario', 'cliente');
+        $clientes = User::role('cliente')->orderBy('name')->get();
+
+        return view('entregas.editar', compact('ordenCargue', 'clientes'));
+    }
+
+    /**
+     * Actualiza datos descriptivos de una entrega (sin alterar tarjas ni cantidades).
+     */
+    public function update(UpdateOrdenCargueRequest $request, OrdenCargue $ordenCargue, AuditoriaService $auditoria): RedirectResponse
+    {
+        $ordenCargue->fill($request->validated());
+        $auditoria->registrarCambios($ordenCargue, $request->user());
+        $ordenCargue->save();
+
+        return redirect()->route('entregas.show', $ordenCargue)
+            ->with('success', 'Entrega actualizada correctamente.');
     }
 
     /**
