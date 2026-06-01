@@ -3,9 +3,16 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-truck me-2"></i>Orden de Cargue #{{ $ordenCargue->id }}</h2>
-    <a href="{{ route('entregas.index') }}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i> Volver
-    </a>
+    <div class="d-flex gap-2">
+        @role('administrador|coordinador')
+            <a href="{{ route('entregas.editar', $ordenCargue) }}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil me-1"></i> Editar
+            </a>
+        @endrole
+        <a href="{{ route('entregas.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Volver
+        </a>
+    </div>
 </div>
 
 <!-- Detalle de la orden -->

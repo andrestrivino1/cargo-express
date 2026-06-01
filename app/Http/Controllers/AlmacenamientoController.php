@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateReferenciaRequest;
 use App\Models\Referencia;
 use App\Models\UbicacionPatio;
 use App\Models\User;
+use App\Services\AuditoriaService;
 use App\Services\InventarioService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
 class AlmacenamientoController extends Controller
@@ -45,6 +49,24 @@ class AlmacenamientoController extends Controller
         $filtros = $request->only(['cliente_id', 'codigo', 'modulo', 'fecha_desde', 'fecha_hasta']);
 
         return $this->inventarioService->exportarInventarioPdf($filtros);
+    }
+
+    public function edit(Referencia $referencia): View
+    {
+        $referencia->load('cambiosAuditoria.usuario', 'contenedor', 'ubicacionPatio');
+        $ubicaciones = UbicacionPatio::activas()->orderBy('modulo')->orderBy('posicion')->get();
+
+        return view('almacenamiento.editar', compact('referencia', 'ubicaciones'));
+    }
+
+    public function update(UpdateReferenciaRequest $request, Referencia $referencia, AuditoriaService $auditoria): RedirectResponse
+    {
+        $referencia->fill($request->validated());
+        $auditoria->registrarCambios($referencia, $request->user());
+        $referencia->save();
+
+        return redirect()->route('inventario.index')
+            ->with('success', "Referencia {$referencia->codigo} actualizada correctamente.");
     }
 
     public function ubicar()

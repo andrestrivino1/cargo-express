@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\SolicitudEstado;
+use App\Traits\Auditable;
 use App\Traits\HasImportPendingFields;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Solicitud extends Model
 {
-    use HasImportPendingFields;
+    use Auditable, HasImportPendingFields;
 
     protected $table = 'solicitudes';
 

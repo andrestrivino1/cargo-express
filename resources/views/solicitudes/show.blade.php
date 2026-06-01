@@ -3,9 +3,16 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0">Solicitud #{{ $solicitud->id }}</h1>
-    <a href="{{ route('solicitudes.index') }}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i> Volver
-    </a>
+    <div class="d-flex gap-2">
+        @role('administrador|coordinador')
+            <a href="{{ route('solicitudes.editar', $solicitud) }}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil me-1"></i> Editar
+            </a>
+        @endrole
+        <a href="{{ route('solicitudes.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Volver
+        </a>
+    </div>
 </div>
 
 {{-- Detalle de la solicitud --}}

@@ -3,9 +3,19 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-box-arrow-right me-2"></i>Detalle Salida</h2>
-    <a href="{{ route('gate-out.index') }}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i> Volver
-    </a>
+    <div class="d-flex gap-2">
+        @role('administrador|coordinador')
+            @php($salidaEvent = $contenedor->gateEvents->firstWhere('tipo', \App\Enums\GateEventTipo::GateOut))
+            @if($salidaEvent)
+                <a href="{{ route('gate-out.editar', $salidaEvent) }}" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil me-1"></i> Editar salida
+                </a>
+            @endif
+        @endrole
+        <a href="{{ route('gate-out.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Volver
+        </a>
+    </div>
 </div>
 
 <!-- Contenedor Details Card -->

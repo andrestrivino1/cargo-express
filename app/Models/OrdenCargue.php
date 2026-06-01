@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\OrdenCargueEstado;
+use App\Traits\Auditable;
 use App\Traits\HasImportPendingFields;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OrdenCargue extends Model
 {
-    use HasImportPendingFields;
+    use Auditable, HasImportPendingFields;
 
     protected $table = 'ordenes_cargue';
 

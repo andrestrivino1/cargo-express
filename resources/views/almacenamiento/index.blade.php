@@ -85,6 +85,7 @@
                         <th>Posición</th>
                         <th>Cantidad Actual</th>
                         <th>Días Almacenamiento</th>
+                        @role('administrador|coordinador')<th>Acciones</th>@endrole
                     </tr>
                 </thead>
                 <tbody>
@@ -101,6 +102,14 @@
                                 {{ $ref->dias_almacenamiento }} días
                             </span>
                         </td>
+                        @role('administrador|coordinador')
+                            <td>
+                                <a href="{{ route('inventario.editar', $ref) }}"
+                                   class="btn btn-sm btn-outline-primary" title="Editar referencia">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        @endrole
                     </tr>
                     @endforeach
                 </tbody>

@@ -96,6 +96,12 @@
                                class="btn btn-sm btn-outline-danger" title="Descargar PDF">
                                 <i class="bi bi-file-earmark-pdf"></i>
                             </a>
+                            @role('administrador|coordinador')
+                                <a href="{{ route('gate-in.editar', $evento) }}"
+                                   class="btn btn-sm btn-outline-primary" title="Editar ingreso">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            @endrole
                         </td>
                     </tr>
                     @endforeach

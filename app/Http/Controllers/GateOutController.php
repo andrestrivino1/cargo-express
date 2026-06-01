@@ -4,13 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Enums\ContenedorEstado;
 use App\Exports\SalidasExport;
+use App\Http\Requests\UpdateGateOutRequest;
 use App\Models\Contenedor;
+use App\Models\GateEvent;
 use App\Models\User;
+use App\Services\AuditoriaService;
 use App\Services\GateOutService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Picqer\Barcode\BarcodeGeneratorPNG;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -98,6 +102,29 @@ class GateOutController extends Controller
 
         return redirect()->route('gate-out.index')
             ->with('success', 'Salida (Gate Out) registrada exitosamente.');
+    }
+
+    /**
+     * Formulario de edición de un evento de salida (Gate Out).
+     */
+    public function edit(GateEvent $gateEvent): View
+    {
+        $gateEvent->load('cambiosAuditoria.usuario', 'contenedor');
+
+        return view('gate-out.editar', compact('gateEvent'));
+    }
+
+    /**
+     * Actualiza un evento de salida (Gate Out) con auditoría.
+     */
+    public function update(UpdateGateOutRequest $request, GateEvent $gateEvent, AuditoriaService $auditoria): RedirectResponse
+    {
+        $gateEvent->fill($request->validated());
+        $auditoria->registrarCambios($gateEvent, $request->user());
+        $gateEvent->save();
+
+        return redirect()->route('gate-out.show', $gateEvent->contenedor)
+            ->with('success', 'Salida actualizada correctamente.');
     }
 
     /**

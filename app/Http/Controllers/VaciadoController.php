@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Enums\ContenedorEstado;
 use App\Http\Requests\StoreOrdenVaciadoRequest;
+use App\Http\Requests\UpdateOrdenVaciadoRequest;
 use App\Models\Contenedor;
 use App\Models\OrdenVaciado;
+use App\Models\User;
+use App\Services\AuditoriaService;
 use App\Services\VaciadoService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
@@ -43,6 +46,24 @@ class VaciadoController extends Controller
 
         return redirect()->route('vaciado.index')
             ->with('success', 'Orden de vaciado programada exitosamente.');
+    }
+
+    public function edit(OrdenVaciado $ordenVaciado): View
+    {
+        $ordenVaciado->load('cambiosAuditoria.usuario', 'contenedor');
+        $supervisores = User::role('supervisor')->orderBy('name')->get();
+
+        return view('vaciado.editar', compact('ordenVaciado', 'supervisores'));
+    }
+
+    public function update(UpdateOrdenVaciadoRequest $request, OrdenVaciado $ordenVaciado, AuditoriaService $auditoria): RedirectResponse
+    {
+        $ordenVaciado->fill($request->validated());
+        $auditoria->registrarCambios($ordenVaciado, $request->user());
+        $ordenVaciado->save();
+
+        return redirect()->route('vaciado.show', $ordenVaciado)
+            ->with('success', 'Orden de vaciado actualizada correctamente.');
     }
 
     public function show(OrdenVaciado $ordenVaciado): View
