@@ -17,7 +17,7 @@ class StoreOrdenVaciadoRequest extends FormRequest
     {
         return [
             'contenedor_id' => ['required', 'exists:contenedores,id'],
-            'fecha_programada' => ['required', 'date', 'after:today'],
+            'fecha_programada' => ['required', 'date'],
             'notas' => ['nullable', 'string'],
             'fotos' => ['nullable', 'array'],
             'fotos.*' => ['image', 'mimes:jpg,png,webp', 'max:5120'],

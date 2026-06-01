@@ -17,7 +17,7 @@ class StoreOrdenServicioRequest extends FormRequest
             'vehiculo' => ['required', 'string', 'max:20'],
             'conductor' => ['required', 'string', 'max:255'],
             'conductor_documento' => ['nullable', 'string', 'max:20'],
-            'cita_puerto' => ['required', 'date', 'after:now'],
+            'cita_puerto' => ['required', 'date'],
         ];
     }
 }

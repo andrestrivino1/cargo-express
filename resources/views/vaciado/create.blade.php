@@ -46,7 +46,6 @@
                                id="fecha_programada"
                                name="fecha_programada"
                                value="{{ old('fecha_programada') }}"
-                               min="{{ now()->addDay()->format('Y-m-d') }}"
                                required>
                         @error('fecha_programada')
                         <div class="invalid-feedback">{{ $message }}</div>

@@ -15,7 +15,7 @@ class StoreOrdenCargueRequest extends FormRequest
     {
         return [
             'cliente_id' => ['required', 'exists:users,id'],
-            'fecha_despacho' => ['required', 'date', 'after:today'],
+            'fecha_despacho' => ['required', 'date'],
             'notas' => ['nullable', 'string'],
         ];
     }
