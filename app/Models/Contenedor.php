@@ -4,13 +4,14 @@ namespace App\Models;
 
 use App\Enums\ContenedorEstado;
 use App\Traits\HasImportPendingFields;
+use App\Traits\HasPhotos;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Contenedor extends Model
 {
-    use HasImportPendingFields;
+    use HasImportPendingFields, HasPhotos;
 
     protected $table = 'contenedores';
 
@@ -19,6 +20,8 @@ class Contenedor extends Model
         'numero',
         'placa_vehiculo',
         'tipo',
+        'bl',
+        'tipo_mercancia',
         'estado',
         'fecha_ingreso',
         'fecha_salida',

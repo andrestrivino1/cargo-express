@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Traits\HasImportPendingFields;
+use App\Traits\HasPhotos;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Tarja extends Model
 {
-    use HasImportPendingFields;
+    use HasImportPendingFields, HasPhotos;
 
     protected $fillable = [
         'orden_cargue_id',
@@ -18,6 +19,10 @@ class Tarja extends Model
         'observaciones',
         'vehiculo',
         'conductor',
+        'conductor_cedula',
+        'transportador',
+        'destino',
+        'consecutivo_odc',
         'import_batch_id',
     ];
 

@@ -1,0 +1,19 @@
+---
+deployment:
+  tasks:
+    # Rutas en el home de cPanel (cuenta tj2yywku2m4d)
+    - export APP=/home/tj2yywku2m4d/cargo_express
+    - export PUB=/home/tj2yywku2m4d/public_html
+    - /bin/mkdir -p $APP
+
+    # Copiar el código de la app a cargo_express/ SIN tocar storage/ (uploads) ni .env
+    - /bin/cp -Rf ./app ./bootstrap ./config ./database ./lang ./public ./resources ./routes ./vendor $APP/
+    - /bin/cp -f ./artisan ./composer.json ./composer.lock $APP/
+
+    # Sincronizar SOLO los assets públicos a public_html (sin pisar index.php ni .htaccess de producción)
+    - /bin/cp -Rf ./public/build $PUB/ || true
+    - /bin/cp -Rf ./public/images $PUB/ || true
+    - /bin/cp -Rf ./public/vendor $PUB/ || true
+
+    # Limpiar cachés de Laravel para que tome el código nuevo
+    - /bin/rm -f $APP/bootstrap/cache/config.php $APP/bootstrap/cache/routes-*.php $APP/bootstrap/cache/packages.php $APP/bootstrap/cache/services.php || true

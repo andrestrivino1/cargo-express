@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             UbicacionPatioSeeder::class,
             ProductoSeeder::class,
+            SecuenciaOdcSeeder::class,
             AdminUserSeeder::class,
         ]);
     }

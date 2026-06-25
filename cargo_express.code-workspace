@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"name": "cargo_express",
+			"path": "."
+		}
+	],
+	"settings": {
+		"claudeCode.useTerminal": true
+	}
+}

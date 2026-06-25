@@ -22,15 +22,7 @@ trait HasPhotos
     public function guardarFotos(array $archivos, string $carpeta): void
     {
         foreach ($archivos as $archivo) {
-            $ruta = Storage::disk('public')->put($carpeta, $archivo);
-
-            $this->photos()->create([
-                'ruta' => $ruta,
-                'nombre' => $archivo->getClientOriginalName(),
-                'tipo' => 'foto',
-                'mime_type' => $archivo->getMimeType(),
-                'tamaño' => $archivo->getSize(),
-            ]);
+            $this->guardarArchivo($archivo, $carpeta, 'foto');
         }
     }
 
@@ -40,16 +32,25 @@ trait HasPhotos
     public function guardarDocumentos(array $archivos, string $carpeta): void
     {
         foreach ($archivos as $archivo) {
-            $ruta = Storage::disk('public')->put($carpeta, $archivo);
-
-            $this->photos()->create([
-                'ruta' => $ruta,
-                'nombre' => $archivo->getClientOriginalName(),
-                'tipo' => 'documento',
-                'mime_type' => $archivo->getMimeType(),
-                'tamaño' => $archivo->getSize(),
-            ]);
+            $this->guardarArchivo($archivo, $carpeta, 'documento');
         }
+    }
+
+    /**
+     * Store a single file (photo or document) optionally tagged with a categoria.
+     */
+    public function guardarArchivo($archivo, string $carpeta, string $tipo, ?string $categoria = null): Photo
+    {
+        $ruta = Storage::disk('public')->put($carpeta, $archivo);
+
+        return $this->photos()->create([
+            'ruta' => $ruta,
+            'nombre' => $archivo->getClientOriginalName(),
+            'tipo' => $tipo,
+            'categoria' => $categoria,
+            'mime_type' => $archivo->getMimeType(),
+            'tamaño' => $archivo->getSize(),
+        ]);
     }
 
     public function fotos(): MorphMany

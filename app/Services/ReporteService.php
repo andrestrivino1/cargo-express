@@ -2,17 +2,111 @@
 
 namespace App\Services;
 
+use App\Enums\MovimientoTipo;
 use App\Exports\ReporteOperacionExport;
 use App\Models\GateEvent;
+use App\Models\MovimientoInventario;
 use App\Models\Novedad;
+use App\Models\Photo;
 use App\Models\Referencia;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ReporteService
 {
+    /**
+     * Inventario actual por cliente (saldo disponible agregado).
+     */
+    public function inventarioPorCliente(array $filtros): Collection
+    {
+        $query = Referencia::query()
+            ->with('cliente')
+            ->where('cantidad_actual', '>', 0);
+
+        if (! empty($filtros['cliente_id'])) {
+            $query->where('cliente_id', $filtros['cliente_id']);
+        }
+
+        return $query->get()
+            ->groupBy('cliente_id')
+            ->map(fn ($refs) => [
+                'cliente' => $refs->first()->cliente?->name ?? 'N/A',
+                'referencias' => $refs->count(),
+                'unidades' => $refs->sum('cantidad_actual'),
+            ])
+            ->values();
+    }
+
+    /**
+     * Movimientos del ledger filtrados por tipo (ingresos/salidas) o todos.
+     */
+    public function movimientos(array $filtros, ?MovimientoTipo $tipo = null): LengthAwarePaginator
+    {
+        $query = MovimientoInventario::query()
+            ->with(['referencia.cliente', 'referencia.contenedor', 'usuario']);
+
+        if ($tipo) {
+            $query->where('tipo', $tipo);
+        }
+
+        if (! empty($filtros['cliente_id'])) {
+            $query->whereHas('referencia', fn ($q) => $q->where('cliente_id', $filtros['cliente_id']));
+        }
+
+        if (! empty($filtros['fecha_desde'])) {
+            $query->where('created_at', '>=', $filtros['fecha_desde']);
+        }
+
+        if (! empty($filtros['fecha_hasta'])) {
+            $query->where('created_at', '<=', Carbon::parse($filtros['fecha_hasta'])->endOfDay());
+        }
+
+        return $query->orderByDesc('created_at')->paginate(20);
+    }
+
+    /**
+     * Novedades registradas (vaciado/recepción).
+     */
+    public function novedades(array $filtros): LengthAwarePaginator
+    {
+        $query = Novedad::query()
+            ->with(['ordenVaciado.contenedor', 'operador', 'referencia']);
+
+        if (! empty($filtros['fecha_desde'])) {
+            $query->where('created_at', '>=', $filtros['fecha_desde']);
+        }
+
+        if (! empty($filtros['fecha_hasta'])) {
+            $query->where('created_at', '<=', Carbon::parse($filtros['fecha_hasta'])->endOfDay());
+        }
+
+        return $query->orderByDesc('created_at')->paginate(20);
+    }
+
+    /**
+     * Evidencias fotográficas registradas en el sistema.
+     */
+    public function evidencias(array $filtros): LengthAwarePaginator
+    {
+        $query = Photo::query()
+            ->where('tipo', 'foto')
+            ->with('photoable');
+
+        if (! empty($filtros['fecha_desde'])) {
+            $query->where('created_at', '>=', $filtros['fecha_desde']);
+        }
+
+        if (! empty($filtros['fecha_hasta'])) {
+            $query->where('created_at', '<=', Carbon::parse($filtros['fecha_hasta'])->endOfDay());
+        }
+
+        return $query->orderByDesc('created_at')->paginate(24);
+    }
+
     /**
      * Generar reporte de operación con filtros.
      */

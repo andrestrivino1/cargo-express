@@ -27,40 +27,29 @@
             </div>
         </div>
 
-        {{-- Placeholder para futuros reportes --}}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card shadow-sm h-100 border-dashed">
-                <div class="card-body text-center d-flex flex-column justify-content-center">
-                    <div class="mb-3">
-                        <i class="bi bi-graph-up display-4 text-muted"></i>
-                    </div>
-                    <h5 class="card-title text-muted">Reporte de Inventario</h5>
-                    <p class="card-text text-muted">
-                        Próximamente: análisis detallado de inventario y ocupación de patio.
-                    </p>
-                    <button class="btn btn-outline-secondary" disabled>
-                        <i class="bi bi-clock me-1"></i> Próximamente
-                    </button>
-                </div>
-            </div>
-        </div>
+        @php
+            $reportes = [
+                ['route' => 'reportes.inventario-por-cliente', 'icon' => 'bi-graph-up', 'title' => 'Inventario por cliente', 'desc' => 'Saldo de inventario disponible agrupado por cliente.'],
+                ['route' => 'reportes.ingresos', 'icon' => 'bi-box-arrow-in-right', 'title' => 'Ingresos', 'desc' => 'Movimientos de entrada de mercancía al inventario.'],
+                ['route' => 'reportes.salidas', 'icon' => 'bi-box-arrow-right', 'title' => 'Salidas', 'desc' => 'Movimientos de salida (despachos) del inventario.'],
+                ['route' => 'reportes.movimientos', 'icon' => 'bi-arrow-left-right', 'title' => 'Historial de movimientos', 'desc' => 'Todas las entradas y salidas con su saldo resultante.'],
+                ['route' => 'reportes.novedades', 'icon' => 'bi-exclamation-triangle', 'title' => 'Novedades', 'desc' => 'Averías, faltantes y daños registrados en recepción.'],
+                ['route' => 'reportes.evidencias', 'icon' => 'bi-images', 'title' => 'Evidencias y trazabilidad', 'desc' => 'Fotografías de evidencia registradas en el sistema.'],
+            ];
+        @endphp
 
+        @foreach ($reportes as $reporte)
         <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card shadow-sm h-100 border-dashed">
-                <div class="card-body text-center d-flex flex-column justify-content-center">
-                    <div class="mb-3">
-                        <i class="bi bi-pie-chart display-4 text-muted"></i>
-                    </div>
-                    <h5 class="card-title text-muted">Reporte Estadístico</h5>
-                    <p class="card-text text-muted">
-                        Próximamente: estadísticas generales de operación y rendimiento.
-                    </p>
-                    <button class="btn btn-outline-secondary" disabled>
-                        <i class="bi bi-clock me-1"></i> Próximamente
-                    </button>
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3"><i class="bi {{ $reporte['icon'] }} display-4 text-primary"></i></div>
+                    <h5 class="card-title">{{ $reporte['title'] }}</h5>
+                    <p class="card-text text-muted">{{ $reporte['desc'] }}</p>
+                    <a href="{{ route($reporte['route']) }}" class="btn btn-primary"><i class="bi bi-arrow-right me-1"></i> Ver Reporte</a>
                 </div>
             </div>
         </div>
+        @endforeach
     </div>
 </div>
 @endsection
