@@ -13,11 +13,8 @@
 <div class="card mb-3">
     <div class="card-body">
         <form method="GET" class="row g-2">
-            <div class="col-md-4">
+            <div class="col-md-5">
                 <input type="text" name="bl" value="{{ request('bl') }}" class="form-control" placeholder="Buscar por BL">
-            </div>
-            <div class="col-md-4">
-                <input type="text" name="numero" value="{{ request('numero') }}" class="form-control" placeholder="Buscar por contenedor">
             </div>
             <div class="col-md-2">
                 <button class="btn btn-outline-secondary w-100"><i class="bi bi-search"></i> Filtrar</button>
@@ -31,37 +28,41 @@
         <table class="table table-hover mb-0">
             <thead>
                 <tr>
-                    <th>Contenedor</th>
                     <th>BL</th>
-                    <th>Tipo de mercancía</th>
                     <th>Cliente</th>
-                    <th>Referencias</th>
+                    <th>Contenedores</th>
                     <th>Fecha ingreso</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
-                @forelse ($contenedores as $contenedor)
+                @forelse ($ingresos as $ingreso)
                 <tr>
-                    <td>{{ $contenedor->numero }}</td>
-                    <td>{{ $contenedor->bl }}</td>
-                    <td>{{ $contenedor->tipo_mercancia }}</td>
-                    <td>{{ $contenedor->referencias->first()?->cliente?->name ?? '—' }}</td>
-                    <td>{{ $contenedor->referencias->count() }}</td>
-                    <td>{{ $contenedor->fecha_ingreso?->format('d/m/Y H:i') }}</td>
+                    <td>
+                        {{ $ingreso->bl }}
+                        @if ($ingreso->bl_por_confirmar)
+                        <span class="badge bg-warning text-dark ms-1" title="BL provisional (número de contenedor). Editar para confirmar.">
+                            <i class="bi bi-exclamation-triangle"></i> BL por confirmar
+                        </span>
+                        @endif
+                    </td>
+                    <td>{{ $ingreso->cliente?->name ?? '—' }}</td>
+                    <td>{{ $ingreso->contenedores_count }}</td>
+                    <td>{{ $ingreso->fecha_ingreso?->format('d/m/Y') }}</td>
                     <td class="text-end">
-                        <a href="{{ route('ingreso.show', $contenedor) }}" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-eye"></i>
-                        </a>
+                        <a href="{{ route('ingreso.show', $ingreso) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                        @role('administrador|coordinador')
+                        <a href="{{ route('ingreso.editar', $ingreso) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                        @endrole
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="7" class="text-center text-muted py-4">No hay ingresos registrados.</td></tr>
+                <tr><td colspan="5" class="text-center text-muted py-4">No hay ingresos registrados.</td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 </div>
 
-<div class="mt-3">{{ $contenedores->withQueryString()->links() }}</div>
+<div class="mt-3">{{ $ingresos->withQueryString()->links() }}</div>
 @endsection

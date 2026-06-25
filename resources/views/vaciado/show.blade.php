@@ -79,6 +79,26 @@
             </div>
         </div>
 
+        {{-- Fotos del vaciado --}}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-images me-1"></i> Fotos del vaciado ({{ $ordenVaciado->fotos->count() }})</h5>
+            </div>
+            <div class="card-body">
+                @if($ordenVaciado->fotos->count() > 0)
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach($ordenVaciado->fotos as $foto)
+                    <a href="{{ $foto->url }}" target="_blank">
+                        <img src="{{ $foto->url }}" alt="{{ $foto->nombre }}" class="rounded border" style="width: 110px; height: 110px; object-fit: cover;">
+                    </a>
+                    @endforeach
+                </div>
+                @else
+                <p class="text-muted mb-0">Aún no hay fotos del vaciado.</p>
+                @endif
+            </div>
+        </div>
+
         {{-- Novedades --}}
         <div class="card mb-4">
             <div class="card-header">

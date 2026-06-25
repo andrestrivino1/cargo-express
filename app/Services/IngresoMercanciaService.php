@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Enums\ContenedorEstado;
 use App\Enums\DocumentoCategoria;
-use App\Models\Contenedor;
+use App\Models\Ingreso;
 use App\Models\Referencia;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -17,71 +17,83 @@ class IngresoMercanciaService
     ) {}
 
     /**
-     * Registra un ingreso de mercancía consolidado: contenedor + referencias +
-     * documentos soporte (BL, DIM, Lista de empaque) + movimientos de entrada.
+     * Registra un ingreso: un BL (Ingreso padre) con sus documentos y fecha, que
+     * agrupa uno o varios contenedores, cada uno con sus referencias. La fecha de
+     * ingreso (posiblemente retroactiva) se propaga a contenedores y referencias.
      *
      * @param  array<string, mixed>  $data
      * @param  array<string, UploadedFile>  $documentos  ['bl' => ..., 'dim' => ..., 'lista_empaque' => ...]
      */
-    public function registrar(array $data, array $documentos, User $usuario): Contenedor
+    public function registrar(array $data, array $documentos, User $usuario): Ingreso
     {
         return DB::transaction(function () use ($data, $documentos, $usuario) {
-            $contenedor = Contenedor::create([
-                'numero' => $data['numero_contenedor'],
+            $fecha = $data['fecha_ingreso'];
+
+            $ingreso = Ingreso::create([
                 'bl' => $data['bl'],
-                'tipo_mercancia' => $data['tipo_mercancia'],
-                'estado' => ContenedorEstado::EnPatio,
-                'fecha_ingreso' => now(),
+                'cliente_id' => $data['cliente_id'],
+                'fecha_ingreso' => $fecha,
+                'usuario_id' => $usuario->id,
             ]);
 
-            foreach ($data['referencias'] as $fila) {
-                $referencia = Referencia::create([
-                    'contenedor_id' => $contenedor->id,
-                    'cliente_id' => $data['cliente_id'],
-                    'codigo' => $fila['codigo'],
-                    'descripcion' => $fila['descripcion'],
-                    'cantidad_inicial' => $fila['cantidad'],
-                    'cantidad_actual' => $fila['cantidad'],
-                    'unidad_medida' => $fila['unidad_medida'],
-                    'peso' => $fila['peso'],
-                    'ubicacion_patio_id' => $fila['ubicacion_patio_id'],
-                    'fecha_ingreso' => now(),
+            foreach ($data['contenedores'] as $filaContenedor) {
+                $contenedor = $ingreso->contenedores()->create([
+                    'numero' => $filaContenedor['numero'],
+                    'tipo_mercancia' => $filaContenedor['tipo_mercancia'],
+                    'bl' => $data['bl'],
+                    'estado' => ContenedorEstado::EnPatio,
+                    'fecha_ingreso' => $fecha,
                 ]);
 
-                $this->movimientos->registrarEntrada(
-                    $referencia,
-                    (int) $fila['cantidad'],
-                    $usuario,
-                    $contenedor,
-                );
+                foreach ($filaContenedor['referencias'] as $filaReferencia) {
+                    $referencia = Referencia::create([
+                        'contenedor_id' => $contenedor->id,
+                        'cliente_id' => $data['cliente_id'],
+                        'codigo' => $filaReferencia['codigo'],
+                        'descripcion' => $filaReferencia['descripcion'],
+                        'cantidad_inicial' => $filaReferencia['cantidad'],
+                        'cantidad_actual' => $filaReferencia['cantidad'],
+                        'unidad_medida' => $filaReferencia['unidad_medida'],
+                        'peso' => $filaReferencia['peso'] ?? null,
+                        'ubicacion_patio_id' => $filaReferencia['ubicacion_patio_id'] ?? null,
+                        'fecha_ingreso' => $fecha,
+                    ]);
+
+                    $this->movimientos->registrarEntrada(
+                        $referencia,
+                        (int) $filaReferencia['cantidad'],
+                        $usuario,
+                        $ingreso,
+                    );
+                }
             }
 
-            $carpeta = "ingresos/{$contenedor->id}";
-            $contenedor->guardarArchivo($documentos['bl'], $carpeta, 'documento', DocumentoCategoria::Bl->value);
-            $contenedor->guardarArchivo($documentos['dim'], $carpeta, 'documento', DocumentoCategoria::Dim->value);
-            $contenedor->guardarArchivo($documentos['lista_empaque'], $carpeta, 'documento', DocumentoCategoria::ListaEmpaque->value);
+            $carpeta = "ingresos/{$ingreso->id}";
+            $ingreso->guardarArchivo($documentos['bl'], $carpeta, 'documento', DocumentoCategoria::Bl->value);
+            $ingreso->guardarArchivo($documentos['dim'], $carpeta, 'documento', DocumentoCategoria::Dim->value);
+            $ingreso->guardarArchivo($documentos['lista_empaque'], $carpeta, 'documento', DocumentoCategoria::ListaEmpaque->value);
 
-            return $contenedor;
+            return $ingreso;
         });
     }
 
     /**
-     * Lista los ingresos (contenedores con referencias) paginados.
+     * Lista los ingresos (por BL) paginados, con su cliente y conteos.
      */
     public function listar(array $filtros)
     {
-        $query = Contenedor::query()
-            ->whereNotNull('bl')
-            ->with(['referencias.cliente', 'referencias.ubicacionPatio']);
+        $query = Ingreso::query()
+            ->with('cliente')
+            ->withCount('contenedores');
 
         if (! empty($filtros['bl'])) {
             $query->where('bl', 'like', '%'.$filtros['bl'].'%');
         }
 
-        if (! empty($filtros['numero'])) {
-            $query->where('numero', 'like', '%'.$filtros['numero'].'%');
+        if (! empty($filtros['cliente_id'])) {
+            $query->where('cliente_id', $filtros['cliente_id']);
         }
 
-        return $query->orderByDesc('fecha_ingreso')->paginate(15);
+        return $query->orderByDesc('fecha_ingreso')->orderByDesc('id')->paginate(15);
     }
 }

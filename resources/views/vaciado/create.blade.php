@@ -67,20 +67,20 @@
 
                     {{-- Fotos --}}
                     <div class="mb-4">
-                        <label for="fotos" class="form-label">
+                        <label class="form-label">
                             <i class="bi bi-camera me-1 text-primary"></i> Fotos del Contenedor
                         </label>
-                        <input type="file"
-                               class="form-control @error('fotos') is-invalid @enderror @error('fotos.*') is-invalid @enderror"
-                               id="fotos"
-                               name="fotos[]"
-                               multiple
-                               accept="image/jpeg,image/png,image/webp">
-                        <div class="form-text">Formatos: JPG, PNG, WEBP. Máximo 5 MB por foto. (Opcional)</div>
-                        @error('fotos')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <div id="preview-fotos" class="d-flex flex-wrap gap-2 mt-2"></div>
+                        <div id="fotos-lista">
+                            <div class="input-group mb-2 foto-row">
+                                <input type="file" class="form-control" name="fotos[]" accept="image/jpeg,image/png,image/webp">
+                                <button type="button" class="btn btn-outline-danger btn-del-foto"><i class="bi bi-x"></i></button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="add-foto">
+                            <i class="bi bi-plus"></i> Agregar otra foto
+                        </button>
+                        <div class="form-text">Puede agregar varias fotos (una por fila). JPG, PNG, WEBP. Máx 5 MB c/u. (Opcional)</div>
+                        @error('fotos.*')<div class="text-danger small">{{ $message }}</div>@enderror
                     </div>
 
                     {{-- Botones --}}
@@ -116,25 +116,23 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const fotosInput = document.getElementById('fotos');
-    const previewFotos = document.getElementById('preview-fotos');
+    const lista = document.getElementById('fotos-lista');
+    const addBtn = document.getElementById('add-foto');
 
-    if (fotosInput) {
-        fotosInput.addEventListener('change', function () {
-            previewFotos.innerHTML = '';
-            Array.from(this.files).forEach(function (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.style.cssText = 'width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #dee2e6;';
-                    img.title = file.name;
-                    previewFotos.appendChild(img);
-                };
-                reader.readAsDataURL(file);
-            });
-        });
+    function nuevaFila() {
+        const row = document.createElement('div');
+        row.className = 'input-group mb-2 foto-row';
+        row.innerHTML = '<input type="file" class="form-control" name="fotos[]" accept="image/jpeg,image/png,image/webp">' +
+            '<button type="button" class="btn btn-outline-danger btn-del-foto"><i class="bi bi-x"></i></button>';
+        lista.appendChild(row);
     }
+
+    if (addBtn) addBtn.addEventListener('click', nuevaFila);
+    if (lista) lista.addEventListener('click', function (e) {
+        if (e.target.closest('.btn-del-foto') && lista.querySelectorAll('.foto-row').length > 1) {
+            e.target.closest('.foto-row').remove();
+        }
+    });
 });
 </script>
 @endpush

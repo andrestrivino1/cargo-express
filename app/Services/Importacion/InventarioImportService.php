@@ -6,6 +6,8 @@ use App\Enums\ImportRowEstado;
 use App\Imports\InventarioHistoricoImport;
 use App\Models\ImportBatch;
 use App\Notifications\ImportacionFinalizada;
+use App\Services\MovimientoInventarioService;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -46,6 +48,7 @@ final class InventarioImportService
         private readonly UbicacionResolver $ubicaciones,
         private readonly ImportReportBuilder $reporte,
         private readonly PendingFieldsRegistrar $pendingRegistrar,
+        private readonly MovimientoInventarioService $movimientos,
     ) {
         $this->contenedoresProcesados = collect();
         $this->conflictosContenedor = collect();
@@ -69,7 +72,7 @@ final class InventarioImportService
 
         $validator = new RowValidator(
             $this->ubicaciones,
-            $batch->fecha_corte !== null ? \Carbon\CarbonImmutable::instance($batch->fecha_corte) : null,
+            $batch->fecha_corte !== null ? CarbonImmutable::instance($batch->fecha_corte) : null,
         );
 
         $import = new InventarioHistoricoImport(
@@ -181,6 +184,20 @@ final class InventarioImportService
             notasConflicto: $notasConflicto,
         );
         $referencia = $this->referenciaMapper->crear($contenedor, $cliente, $ubic, $datos, $batch);
+
+        // Flujo nuevo (feature 006): registra el saldo actual como entrada en el ledger,
+        // vinculada al Ingreso del contenedor, para que el inventario importado aparezca
+        // en el módulo Ingreso y en el reporte de Ingresos.
+        if ((int) $referencia->cantidad_actual > 0) {
+            $this->movimientos->registrarEntrada(
+                $referencia,
+                (int) $referencia->cantidad_actual,
+                $batch->usuario,
+                $contenedor->ingreso,
+                'Importación de inventario',
+            );
+        }
+
         $tarjasCreadas = $this->historialMapper->crearHistorial(
             ref: $referencia,
             cliente: $cliente,

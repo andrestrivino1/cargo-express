@@ -33,7 +33,13 @@
             <tbody>
                 @forelse ($movimientos as $mov)
                 <tr>
-                    <td>{{ $mov->created_at?->format('d/m/Y H:i') }}</td>
+                    <td>
+                        @if (($usarFechaIngreso ?? false) && $mov->referencia)
+                            {{ $mov->referencia->fecha_ingreso?->format('d/m/Y') }}
+                        @else
+                            {{ $mov->created_at?->format('d/m/Y H:i') }}
+                        @endif
+                    </td>
                     <td><span class="badge bg-{{ $mov->tipo->color() }}">{{ $mov->tipo->label() }}</span></td>
                     <td>{{ $mov->referencia?->cliente?->name }}</td>
                     <td>{{ $mov->referencia?->contenedor?->numero }}</td>

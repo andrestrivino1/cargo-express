@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreIngresoMercanciaRequest;
-use App\Models\Contenedor;
+use App\Http\Requests\UpdateIngresoRequest;
+use App\Models\Ingreso;
 use App\Models\Producto;
 use App\Models\UbicacionPatio;
 use App\Models\User;
@@ -20,9 +21,9 @@ class IngresoMercanciaController extends Controller
 
     public function index(Request $request): View
     {
-        $contenedores = $this->ingresos->listar($request->only('bl', 'numero'));
+        $ingresos = $this->ingresos->listar($request->only('bl', 'cliente_id'));
 
-        return view('ingreso.index', compact('contenedores'));
+        return view('ingreso.index', compact('ingresos'));
     }
 
     public function create(): View
@@ -36,7 +37,7 @@ class IngresoMercanciaController extends Controller
 
     public function store(StoreIngresoMercanciaRequest $request): RedirectResponse
     {
-        $contenedor = $this->ingresos->registrar(
+        $ingreso = $this->ingresos->registrar(
             $request->validated(),
             [
                 'bl' => $request->file('documento_bl'),
@@ -47,14 +48,38 @@ class IngresoMercanciaController extends Controller
         );
 
         return redirect()
-            ->route('ingreso.show', $contenedor)
-            ->with('success', "Ingreso registrado para el contenedor {$contenedor->numero}.");
+            ->route('ingreso.show', $ingreso)
+            ->with('success', "Ingreso registrado para el BL {$ingreso->bl}.");
     }
 
-    public function show(Contenedor $contenedor): View
+    public function show(Ingreso $ingreso): View
     {
-        $contenedor->load(['referencias.cliente', 'referencias.ubicacionPatio', 'documentos']);
+        $ingreso->load([
+            'cliente',
+            'documentos',
+            'contenedores.referencias.ubicacionPatio',
+            'contenedores.documentos', // compatibilidad: ingresos legados con docs en el contenedor
+        ]);
 
-        return view('ingreso.show', compact('contenedor'));
+        return view('ingreso.show', compact('ingreso'));
+    }
+
+    public function edit(Ingreso $ingreso): View
+    {
+        $clientes = User::role('cliente')->orderBy('name')->get();
+
+        return view('ingreso.editar', compact('ingreso', 'clientes'));
+    }
+
+    public function update(UpdateIngresoRequest $request, Ingreso $ingreso): RedirectResponse
+    {
+        $data = $request->validated();
+        // Al confirmar el BL desde la edición, se baja la bandera "por confirmar".
+        $data['bl_por_confirmar'] = false;
+        $ingreso->update($data);
+
+        return redirect()
+            ->route('ingreso.show', $ingreso)
+            ->with('success', "Ingreso del BL {$ingreso->bl} actualizado.");
     }
 }
