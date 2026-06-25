@@ -214,6 +214,7 @@
                         <i class="bi bi-archive"></i> Mi Inventario
                     </a>
                 </li>
+                @if (config('modulos.entregas'))
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('entregas.create') ? 'active' : '' }}" href="{{ route('entregas.create') }}">
                         <i class="bi bi-plus-circle"></i> Orden de Cargue
@@ -224,6 +225,7 @@
                         <i class="bi bi-truck"></i> Mis Entregas
                     </a>
                 </li>
+                @endif
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('trazabilidad.*') ? 'active' : '' }}" href="{{ route('trazabilidad.index') }}">
                         <i class="bi bi-search"></i> Trazabilidad
@@ -237,46 +239,76 @@
             <!-- Operaciones -->
             <div class="sidebar-heading">Operaciones</div>
             <ul class="nav flex-column">
+                @if (config('modulos.solicitudes'))
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('solicitudes.*') ? 'active' : '' }}" href="{{ route('solicitudes.index') }}">
                         <i class="bi bi-file-earmark-text"></i> Solicitudes
                     </a>
                 </li>
+                @endif
+                @if (config('modulos.ingreso'))
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('gate-in.*') ? 'active' : '' }}" href="{{ route('gate-in.index') }}">
+                    <a class="nav-link {{ request()->routeIs('ingreso.*') ? 'active' : '' }}" href="{{ route('ingreso.index') }}">
                         <i class="bi bi-box-arrow-in-right"></i> Ingreso
                     </a>
                 </li>
+                @endif
+                @if (config('modulos.gate_in'))
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('gate-in.*') ? 'active' : '' }}" href="{{ route('gate-in.index') }}">
+                        <i class="bi bi-box-arrow-in-right"></i> Ingreso (Gate-In)
+                    </a>
+                </li>
+                @endif
+                @if (config('modulos.vaciado'))
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('vaciado.*') ? 'active' : '' }}" href="{{ route('vaciado.index') }}">
                         <i class="bi bi-box-seam"></i> Vaciado
                     </a>
                 </li>
+                @endif
+                @if (config('modulos.inventario'))
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('inventario.*') ? 'active' : '' }}" href="{{ route('inventario.index') }}">
                         <i class="bi bi-archive"></i> Almacenamiento
                     </a>
                 </li>
+                @endif
+                @if (config('modulos.salida'))
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('gate-out.*') ? 'active' : '' }}" href="{{ route('gate-out.index') }}">
+                    <a class="nav-link {{ request()->routeIs('salida.*') ? 'active' : '' }}" href="{{ route('salida.index') }}">
                         <i class="bi bi-box-arrow-right"></i> Salida
                     </a>
                 </li>
+                @endif
+                @if (config('modulos.gate_out'))
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('gate-out.*') ? 'active' : '' }}" href="{{ route('gate-out.index') }}">
+                        <i class="bi bi-box-arrow-right"></i> Salida (Gate-Out)
+                    </a>
+                </li>
+                @endif
+                @if (config('modulos.productos'))
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('productos.*') ? 'active' : '' }}" href="{{ route('productos.index') }}">
                         <i class="bi bi-box"></i> Productos
                     </a>
                 </li>
+                @endif
+                @if (config('modulos.transferencias'))
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('transferencias.*') ? 'active' : '' }}" href="{{ route('transferencias.index') }}">
                         <i class="bi bi-arrow-left-right"></i> Transferencias
                     </a>
                 </li>
+                @endif
+                @if (config('modulos.entregas'))
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('entregas.*') ? 'active' : '' }}" href="{{ route('entregas.index') }}">
                         <i class="bi bi-truck"></i> Entregas
                     </a>
                 </li>
+                @endif
             </ul>
 
             <!-- Consultas -->
@@ -315,14 +347,17 @@
                         <i class="bi bi-geo-alt"></i> Ubicaciones
                     </a>
                 </li>
+                @if (config('modulos.importaciones'))
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('importaciones.*') ? 'active' : '' }}" href="{{ route('importaciones.index') }}">
                         <i class="bi bi-cloud-upload"></i> Importar inventario
                     </a>
                 </li>
+                @endif
             </ul>
             @endrole
 
+            @if (config('modulos.importaciones'))
             @hasanyrole('administrador|coordinador|despachador|portero|operador|supervisor')
             <div class="sidebar-heading">Importación histórica</div>
             <ul class="nav flex-column">
@@ -337,6 +372,7 @@
                 </li>
             </ul>
             @endhasanyrole
+            @endif
             @endunlessrole
         </div>
     </nav>

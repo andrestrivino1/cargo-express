@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\MovimientoTipo;
 use App\Models\User;
 use App\Services\ReporteService;
 use Illuminate\Http\Request;
@@ -21,6 +22,69 @@ class ReporteController extends Controller
     public function index(): View
     {
         return view('reportes.index');
+    }
+
+    public function inventarioPorCliente(Request $request): View
+    {
+        $clientes = User::role('cliente')->orderBy('name')->get();
+        $datos = $this->reporteService->inventarioPorCliente($request->only('cliente_id'));
+
+        return view('reportes.inventario-por-cliente', compact('clientes', 'datos'));
+    }
+
+    public function ingresos(Request $request): View
+    {
+        $movimientos = $this->reporteService->movimientos(
+            $request->only('cliente_id', 'fecha_desde', 'fecha_hasta'),
+            MovimientoTipo::Entrada,
+        );
+
+        return view('reportes.movimientos', [
+            'movimientos' => $movimientos,
+            'titulo' => 'Ingresos',
+            'tipo' => 'ingresos',
+        ]);
+    }
+
+    public function salidas(Request $request): View
+    {
+        $movimientos = $this->reporteService->movimientos(
+            $request->only('cliente_id', 'fecha_desde', 'fecha_hasta'),
+            MovimientoTipo::Salida,
+        );
+
+        return view('reportes.movimientos', [
+            'movimientos' => $movimientos,
+            'titulo' => 'Salidas',
+            'tipo' => 'salidas',
+        ]);
+    }
+
+    public function movimientos(Request $request): View
+    {
+        $movimientos = $this->reporteService->movimientos(
+            $request->only('cliente_id', 'fecha_desde', 'fecha_hasta'),
+        );
+
+        return view('reportes.movimientos', [
+            'movimientos' => $movimientos,
+            'titulo' => 'Historial de movimientos',
+            'tipo' => 'movimientos',
+        ]);
+    }
+
+    public function novedades(Request $request): View
+    {
+        $novedades = $this->reporteService->novedades($request->only('fecha_desde', 'fecha_hasta'));
+
+        return view('reportes.novedades', compact('novedades'));
+    }
+
+    public function evidencias(Request $request): View
+    {
+        $evidencias = $this->reporteService->evidencias($request->only('fecha_desde', 'fecha_hasta'));
+
+        return view('reportes.evidencias', compact('evidencias'));
     }
 
     /**

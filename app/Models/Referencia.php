@@ -20,6 +20,7 @@ class Referencia extends Model
         'cantidad_inicial',
         'cantidad_actual',
         'unidad_medida',
+        'peso',
         'ubicacion_patio_id',
         'fecha_ingreso',
         'fecha_salida',
@@ -28,6 +29,7 @@ class Referencia extends Model
     protected function casts(): array
     {
         return [
+            'peso' => 'decimal:2',
             'fecha_ingreso' => 'datetime',
             'fecha_salida' => 'datetime',
         ];
@@ -61,5 +63,10 @@ class Referencia extends Model
     public function tarjaDetalles(): HasMany
     {
         return $this->hasMany(TarjaDetalle::class);
+    }
+
+    public function movimientos(): HasMany
+    {
+        return $this->hasMany(MovimientoInventario::class);
     }
 }

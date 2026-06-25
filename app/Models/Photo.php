@@ -22,6 +22,7 @@ class Photo extends Model
         'ruta',
         'nombre',
         'tipo',
+        'categoria',
         'mime_type',
         'tamaño',
     ];

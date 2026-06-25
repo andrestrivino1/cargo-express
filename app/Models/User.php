@@ -25,6 +25,7 @@ class User extends Authenticatable
         'name',
         'email',
         'phone',
+        'nit',
         'password',
         'requiere_cambio_password',
         'email_placeholder',

@@ -24,6 +24,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'solicitudes.asignar',
             'gate-in.ver',
             'gate-in.crear',
+            'ingreso.ver',
+            'ingreso.crear',
+            'salida.ver',
+            'salida.crear',
             'referencias.ver',
             'referencias.crear',
             'vaciado.ver',
@@ -64,6 +68,8 @@ class RolesAndPermissionsSeeder extends Seeder
 
         Role::create(['name' => 'operador'])->givePermissionTo([
             'gate-in.ver',
+            'ingreso.ver',
+            'ingreso.crear',
             'referencias.ver',
             'referencias.crear',
             'vaciado.ver',
@@ -76,6 +82,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'solicitudes.ver',
             'solicitudes.asignar',
             'gate-in.ver',
+            'ingreso.ver',
+            'ingreso.crear',
+            'salida.ver',
+            'salida.crear',
+            'inventario.ver',
+            'reportes.ver',
         ]);
 
         Role::create(['name' => 'supervisor'])->givePermissionTo([
@@ -89,6 +101,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'entregas.ver',
             'entregas.crear',
             'entregas.generar-tarja',
+            'salida.ver',
+            'salida.crear',
             'inventario.ver',
             'referencias.ver',
         ]);

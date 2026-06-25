@@ -7,6 +7,7 @@ use App\Http\Controllers\EntregaController;
 use App\Http\Controllers\GateInController;
 use App\Http\Controllers\GateOutController;
 use App\Http\Controllers\ImportacionInventarioController;
+use App\Http\Controllers\IngresoMercanciaController;
 use App\Http\Controllers\NovedadController;
 use App\Http\Controllers\PendientesCompletarController;
 use App\Http\Controllers\OrdenServicioController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReferenciaController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\SalidaMercanciaController;
 use App\Http\Controllers\SolicitudController;
 use App\Http\Controllers\StickerController;
 use App\Http\Controllers\TarjaController;
@@ -57,7 +59,7 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Solicitudes
-    Route::prefix('solicitudes')->name('solicitudes.')->middleware('permission:solicitudes.ver')->group(function () {
+    Route::prefix('solicitudes')->name('solicitudes.')->middleware(['modulo:solicitudes', 'permission:solicitudes.ver'])->group(function () {
         Route::get('/', [SolicitudController::class, 'index'])->name('index');
         Route::get('/crear', [SolicitudController::class, 'create'])->name('create')->middleware('permission:solicitudes.crear');
         Route::post('/', [SolicitudController::class, 'store'])->name('store')->middleware('permission:solicitudes.crear');
@@ -70,7 +72,7 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
     });
 
     // Gate In
-    Route::prefix('gate-in')->name('gate-in.')->middleware('permission:gate-in.ver')->group(function () {
+    Route::prefix('gate-in')->name('gate-in.')->middleware(['modulo:gate_in', 'permission:gate-in.ver'])->group(function () {
         Route::get('/', [GateInController::class, 'index'])->name('index');
         Route::get('/crear', [GateInController::class, 'create'])->name('create')->middleware('permission:gate-in.crear');
         Route::post('/', [GateInController::class, 'store'])->name('store')->middleware('permission:gate-in.crear');
@@ -78,6 +80,24 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
         Route::get('/{gateEvent}/pdf', [GateInController::class, 'resumenPdf'])->name('pdf');
         Route::get('/{gateEvent}/editar', [GateInController::class, 'edit'])->name('editar')->middleware('role:administrador|coordinador');
         Route::put('/{gateEvent}', [GateInController::class, 'update'])->name('update')->middleware('role:administrador|coordinador');
+    });
+
+    // Ingreso de mercancía (formulario consolidado — reemplaza el flujo Solicitud/Gate-In)
+    Route::prefix('ingreso')->name('ingreso.')->middleware('permission:ingreso.ver')->group(function () {
+        Route::get('/', [IngresoMercanciaController::class, 'index'])->name('index');
+        Route::get('/crear', [IngresoMercanciaController::class, 'create'])->name('create')->middleware('permission:ingreso.crear');
+        Route::post('/', [IngresoMercanciaController::class, 'store'])->name('store')->middleware('permission:ingreso.crear');
+        Route::get('/{contenedor}', [IngresoMercanciaController::class, 'show'])->name('show');
+    });
+
+    // Salida de mercancía (formulario consolidado + Orden de Salida ODC — reemplaza Entregas/Tarja)
+    Route::prefix('salida')->name('salida.')->middleware('permission:salida.ver')->group(function () {
+        Route::get('/', [SalidaMercanciaController::class, 'index'])->name('index');
+        Route::get('/crear', [SalidaMercanciaController::class, 'create'])->name('create')->middleware('permission:salida.crear');
+        Route::post('/', [SalidaMercanciaController::class, 'store'])->name('store')->middleware('permission:salida.crear');
+        Route::get('/cliente/{cliente}/referencias', [SalidaMercanciaController::class, 'referenciasCliente'])->name('referencias-cliente');
+        Route::get('/{tarja}', [SalidaMercanciaController::class, 'show'])->name('show');
+        Route::get('/{tarja}/orden-salida.pdf', [SalidaMercanciaController::class, 'ordenSalidaPdf'])->name('orden-salida.pdf');
     });
 
     // Referencias (nested under contenedores)
@@ -116,7 +136,7 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
     });
 
     // Transferencias
-    Route::prefix('transferencias')->name('transferencias.')->middleware('permission:inventario.ubicar')->group(function () {
+    Route::prefix('transferencias')->name('transferencias.')->middleware(['modulo:transferencias', 'permission:inventario.ubicar'])->group(function () {
         Route::get('/', [TransferenciaController::class, 'index'])->name('index');
         Route::get('/entre-modulos', [TransferenciaController::class, 'createEntreModulos'])->name('entre-modulos.create');
         Route::post('/entre-modulos', [TransferenciaController::class, 'storeEntreModulos'])->name('entre-modulos.store');
@@ -140,7 +160,7 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
     });
 
     // Gate Out
-    Route::prefix('gate-out')->name('gate-out.')->middleware('permission:gate-out.ver')->group(function () {
+    Route::prefix('gate-out')->name('gate-out.')->middleware(['modulo:gate_out', 'permission:gate-out.ver'])->group(function () {
         Route::get('/', [GateOutController::class, 'index'])->name('index');
         Route::get('/export/excel', [GateOutController::class, 'exportExcel'])->name('export.excel');
         Route::get('/evento/{gateEvent}/editar', [GateOutController::class, 'edit'])->name('editar')->middleware('role:administrador|coordinador');
@@ -152,7 +172,7 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
     });
 
     // Entregas
-    Route::prefix('entregas')->name('entregas.')->middleware('permission:entregas.ver')->group(function () {
+    Route::prefix('entregas')->name('entregas.')->middleware(['modulo:entregas', 'permission:entregas.ver'])->group(function () {
         Route::get('/', [EntregaController::class, 'index'])->name('index');
         Route::get('/crear', [EntregaController::class, 'create'])->name('create')->middleware('permission:entregas.crear');
         Route::post('/', [EntregaController::class, 'store'])->name('store')->middleware('permission:entregas.crear');
@@ -177,6 +197,12 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
         Route::get('/', [ReporteController::class, 'index'])->name('index');
         Route::get('/operacion', [ReporteController::class, 'operacion'])->name('operacion');
         Route::post('/export', [ReporteController::class, 'export'])->name('export');
+        Route::get('/inventario-por-cliente', [ReporteController::class, 'inventarioPorCliente'])->name('inventario-por-cliente');
+        Route::get('/ingresos', [ReporteController::class, 'ingresos'])->name('ingresos');
+        Route::get('/salidas', [ReporteController::class, 'salidas'])->name('salidas');
+        Route::get('/movimientos', [ReporteController::class, 'movimientos'])->name('movimientos');
+        Route::get('/novedades', [ReporteController::class, 'novedades'])->name('novedades');
+        Route::get('/evidencias', [ReporteController::class, 'evidencias'])->name('evidencias');
     });
 
     // Admin
@@ -186,14 +212,14 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
     });
 
     // Pendientes de completar (feature 002 — patrón "importar ahora, completar al consultar")
-    Route::prefix('pendientes')->name('pendientes.')->group(function () {
+    Route::prefix('pendientes')->name('pendientes.')->middleware('modulo:importaciones')->group(function () {
         Route::get('/', [PendientesCompletarController::class, 'index'])->name('index');
         Route::get('/{type}/{id}/completar', [PendientesCompletarController::class, 'editar'])->name('editar');
         Route::post('/{type}/{id}/completar', [PendientesCompletarController::class, 'actualizar'])->name('actualizar');
     });
 
     // Importación de inventario histórico (feature 002)
-    Route::prefix('admin/importaciones')->name('importaciones.')->middleware('role:administrador|coordinador')->group(function () {
+    Route::prefix('admin/importaciones')->name('importaciones.')->middleware(['modulo:importaciones', 'role:administrador|coordinador'])->group(function () {
         Route::get('/', [ImportacionInventarioController::class, 'index'])->name('index');
         Route::post('/', [ImportacionInventarioController::class, 'store'])->name('store');
         Route::get('/{importacione}', [ImportacionInventarioController::class, 'show'])->name('show');
