@@ -58,9 +58,13 @@ class VaciadoController extends Controller
 
     public function update(UpdateOrdenVaciadoRequest $request, OrdenVaciado $ordenVaciado, AuditoriaService $auditoria): RedirectResponse
     {
-        $ordenVaciado->fill($request->validated());
+        $ordenVaciado->fill($request->datosVaciado());
         $auditoria->registrarCambios($ordenVaciado, $request->user());
         $ordenVaciado->save();
+
+        if ($request->hasFile('fotos')) {
+            $this->vaciadoService->agregarFotos($ordenVaciado, $request->file('fotos'));
+        }
 
         return redirect()->route('vaciado.show', $ordenVaciado)
             ->with('success', 'Orden de vaciado actualizada correctamente.');

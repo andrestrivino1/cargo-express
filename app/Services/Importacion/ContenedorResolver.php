@@ -7,6 +7,7 @@ use App\Enums\OrdenServicioEstado;
 use App\Enums\SolicitudEstado;
 use App\Models\Contenedor;
 use App\Models\ImportBatch;
+use App\Models\Ingreso;
 use App\Models\OrdenServicio;
 use App\Models\Solicitud;
 use App\Models\User;
@@ -96,9 +97,22 @@ final class ContenedorResolver
             prioridad: 60,
         );
 
+        // Flujo nuevo (feature 006): cada contenedor importado cuelga de un Ingreso
+        // (BL = número de contenedor, marcado "por confirmar" para que el usuario
+        // edite el ingreso y ponga el BL real).
+        $ingreso = Ingreso::create([
+            'bl' => $numeroNormalizado,
+            'bl_por_confirmar' => true,
+            'cliente_id' => $cliente->getKey(),
+            'fecha_ingreso' => $fechaIngreso,
+            'usuario_id' => $batch->usuario_id,
+        ]);
+
         $contenedor = Contenedor::create([
+            'ingreso_id' => $ingreso->getKey(),
             'orden_servicio_id' => $ordenServicio->getKey(),
             'numero' => $numeroNormalizado,
+            'bl' => $numeroNormalizado,
             'placa_vehiculo' => self::PLACEHOLDER,
             'tipo' => null,
             'estado' => ContenedorEstado::VaciadoCompletado,

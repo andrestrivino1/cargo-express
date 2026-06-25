@@ -29,5 +29,5 @@ return [
     'entregas' => false,      // Orden de Cargue / Tarja (reemplazado por 'salida')
     'transferencias' => false,
     'gate_out' => false,
-    'importaciones' => false, // importación histórica + pendientes por completar
+    'importaciones' => true, // importación histórica + pendientes por completar (reactivado para importar el inventario actual)
 ];

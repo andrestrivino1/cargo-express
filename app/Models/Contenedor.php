@@ -16,6 +16,7 @@ class Contenedor extends Model
     protected $table = 'contenedores';
 
     protected $fillable = [
+        'ingreso_id',
         'orden_servicio_id',
         'numero',
         'placa_vehiculo',
@@ -39,6 +40,11 @@ class Contenedor extends Model
             'fecha_salida' => 'datetime',
             'limpieza_registrada' => 'boolean',
         ];
+    }
+
+    public function ingreso(): BelongsTo
+    {
+        return $this->belongsTo(Ingreso::class);
     }
 
     public function ordenServicio(): BelongsTo

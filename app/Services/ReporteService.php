@@ -14,7 +14,6 @@ use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 class ReporteService
 {
@@ -43,8 +42,13 @@ class ReporteService
 
     /**
      * Movimientos del ledger filtrados por tipo (ingresos/salidas) o todos.
+     *
+     * Para el reporte de ingresos, `$porFechaReferencia = true` hace que el filtro
+     * de fechas use la fecha de ingreso capturada (`referencias.fecha_ingreso`, que
+     * puede ser retroactiva) en lugar de la marca del ledger; salidas/movimientos
+     * siguen filtrando por la marca del ledger (created_at), sin cambios.
      */
-    public function movimientos(array $filtros, ?MovimientoTipo $tipo = null): LengthAwarePaginator
+    public function movimientos(array $filtros, ?MovimientoTipo $tipo = null, bool $porFechaReferencia = false): LengthAwarePaginator
     {
         $query = MovimientoInventario::query()
             ->with(['referencia.cliente', 'referencia.contenedor', 'usuario']);
@@ -57,12 +61,20 @@ class ReporteService
             $query->whereHas('referencia', fn ($q) => $q->where('cliente_id', $filtros['cliente_id']));
         }
 
-        if (! empty($filtros['fecha_desde'])) {
-            $query->where('created_at', '>=', $filtros['fecha_desde']);
-        }
-
-        if (! empty($filtros['fecha_hasta'])) {
-            $query->where('created_at', '<=', Carbon::parse($filtros['fecha_hasta'])->endOfDay());
+        if ($porFechaReferencia) {
+            if (! empty($filtros['fecha_desde'])) {
+                $query->whereHas('referencia', fn ($q) => $q->whereDate('fecha_ingreso', '>=', $filtros['fecha_desde']));
+            }
+            if (! empty($filtros['fecha_hasta'])) {
+                $query->whereHas('referencia', fn ($q) => $q->whereDate('fecha_ingreso', '<=', $filtros['fecha_hasta']));
+            }
+        } else {
+            if (! empty($filtros['fecha_desde'])) {
+                $query->where('created_at', '>=', $filtros['fecha_desde']);
+            }
+            if (! empty($filtros['fecha_hasta'])) {
+                $query->where('created_at', '<=', Carbon::parse($filtros['fecha_hasta'])->endOfDay());
+            }
         }
 
         return $query->orderByDesc('created_at')->paginate(20);
@@ -142,7 +154,7 @@ class ReporteService
         $pdf = Pdf::loadView('pdf.reporte-operacion', $datos);
         $pdf->setPaper('A4', 'landscape');
 
-        return $pdf->download('reporte-operacion-' . now()->format('Y-m-d') . '.pdf');
+        return $pdf->download('reporte-operacion-'.now()->format('Y-m-d').'.pdf');
     }
 
     /**
@@ -153,17 +165,17 @@ class ReporteService
         $query = GateEvent::query()
             ->with(['contenedor.ordenServicio.solicitud.cliente', 'usuario']);
 
-        if (!empty($filtros['cliente_id'])) {
+        if (! empty($filtros['cliente_id'])) {
             $query->whereHas('contenedor.ordenServicio.solicitud', function ($q) use ($filtros) {
                 $q->where('cliente_id', $filtros['cliente_id']);
             });
         }
 
-        if (!empty($filtros['fecha_desde'])) {
+        if (! empty($filtros['fecha_desde'])) {
             $query->where('hora', '>=', $filtros['fecha_desde']);
         }
 
-        if (!empty($filtros['fecha_hasta'])) {
+        if (! empty($filtros['fecha_hasta'])) {
             $query->where('hora', '<=', Carbon::parse($filtros['fecha_hasta'])->endOfDay());
         }
 
@@ -178,17 +190,17 @@ class ReporteService
         $query = Novedad::query()
             ->with(['ordenVaciado.contenedor.ordenServicio.solicitud.cliente', 'operador', 'referencia']);
 
-        if (!empty($filtros['cliente_id'])) {
+        if (! empty($filtros['cliente_id'])) {
             $query->whereHas('ordenVaciado.contenedor.ordenServicio.solicitud', function ($q) use ($filtros) {
                 $q->where('cliente_id', $filtros['cliente_id']);
             });
         }
 
-        if (!empty($filtros['fecha_desde'])) {
+        if (! empty($filtros['fecha_desde'])) {
             $query->where('created_at', '>=', $filtros['fecha_desde']);
         }
 
-        if (!empty($filtros['fecha_hasta'])) {
+        if (! empty($filtros['fecha_hasta'])) {
             $query->where('created_at', '<=', Carbon::parse($filtros['fecha_hasta'])->endOfDay());
         }
 
@@ -198,7 +210,7 @@ class ReporteService
     /**
      * Obtener resumen de días de almacenamiento por cliente.
      */
-    private function obtenerResumenAlmacenamiento(array $filtros): \Illuminate\Support\Collection
+    private function obtenerResumenAlmacenamiento(array $filtros): Collection
     {
         $query = Referencia::query()
             ->with('cliente')
@@ -209,15 +221,15 @@ class ReporteService
             ->whereNotNull('fecha_ingreso')
             ->groupBy('cliente_id');
 
-        if (!empty($filtros['cliente_id'])) {
+        if (! empty($filtros['cliente_id'])) {
             $query->where('cliente_id', $filtros['cliente_id']);
         }
 
-        if (!empty($filtros['fecha_desde'])) {
+        if (! empty($filtros['fecha_desde'])) {
             $query->where('fecha_ingreso', '>=', $filtros['fecha_desde']);
         }
 
-        if (!empty($filtros['fecha_hasta'])) {
+        if (! empty($filtros['fecha_hasta'])) {
             $query->where(function ($q) use ($filtros) {
                 $q->where('fecha_ingreso', '<=', Carbon::parse($filtros['fecha_hasta'])->endOfDay());
             });

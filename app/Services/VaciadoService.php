@@ -8,6 +8,7 @@ use App\Models\OrdenVaciado;
 use App\Models\Referencia;
 use App\Models\User;
 use App\Notifications\NovedadRegistradaNotification;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
 class VaciadoService
@@ -22,11 +23,21 @@ class VaciadoService
             'estado' => OrdenVaciadoEstado::Programada,
         ]);
 
-        if (!empty($data['fotos'])) {
+        if (! empty($data['fotos'])) {
             $orden->guardarFotos($data['fotos'], "vaciado/{$orden->id}/fotos");
         }
 
         return $orden;
+    }
+
+    /**
+     * Agrega una o más fotos a un vaciado existente, sin reemplazar las previas.
+     *
+     * @param  array<UploadedFile>  $fotos
+     */
+    public function agregarFotos(OrdenVaciado $orden, array $fotos): void
+    {
+        $orden->guardarFotos($fotos, "vaciado/{$orden->id}/fotos");
     }
 
     public function iniciar(OrdenVaciado $orden): void
@@ -53,15 +64,15 @@ class VaciadoService
             $cantidadAfectada = isset($data['cantidad_afectada']) ? (int) $data['cantidad_afectada'] : null;
 
             $novedad = $orden->novedades()->create([
-                'operador_id'       => $operador->id,
-                'tipo'              => $data['tipo'],
-                'descripcion'       => $data['descripcion'],
-                'referencia_id'     => $data['referencia_id'] ?? null,
+                'operador_id' => $operador->id,
+                'tipo' => $data['tipo'],
+                'descripcion' => $data['descripcion'],
+                'referencia_id' => $data['referencia_id'] ?? null,
                 'cantidad_afectada' => $cantidadAfectada,
             ]);
 
             // Descontar cantidad de la referencia si aplica
-            if ($cantidadAfectada && !empty($data['referencia_id'])) {
+            if ($cantidadAfectada && ! empty($data['referencia_id'])) {
                 $referencia = Referencia::find($data['referencia_id']);
                 if ($referencia) {
                     $referencia->cantidad_actual = max(0, $referencia->cantidad_actual - $cantidadAfectada);
@@ -69,7 +80,7 @@ class VaciadoService
                 }
             }
 
-            if (!empty($data['fotos'])) {
+            if (! empty($data['fotos'])) {
                 $novedad->guardarFotos($data['fotos'], "novedades/{$novedad->id}");
             }
 

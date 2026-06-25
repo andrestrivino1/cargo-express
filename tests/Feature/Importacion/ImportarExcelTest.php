@@ -6,9 +6,9 @@ use App\Enums\ImportEstado;
 use App\Jobs\ProcesarImportacionInventario;
 use App\Models\Contenedor;
 use App\Models\ImportBatch;
-use App\Models\ImportPendingRecord;
+use App\Models\Ingreso;
+use App\Models\MovimientoInventario;
 use App\Models\Referencia;
-use App\Models\Tarja;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -110,6 +110,32 @@ class ImportarExcelTest extends TestCase
         foreach ($contenedores as $c) {
             self::assertTrue($c->tienePendientesImportacion(), "Contenedor {$c->numero} debería tener pendiente vivo");
         }
+    }
+
+    #[Test]
+    public function importacion_se_integra_al_flujo_nuevo_ingreso_y_ledger(): void
+    {
+        $batch = $this->dispararImport('importar');
+
+        self::assertSame(ImportEstado::Completado, $batch->estado, $batch->error_mensaje ?? '');
+
+        // Cada contenedor importado cuelga de un Ingreso con BL provisional (por confirmar)
+        $contenedores = Contenedor::query()->where('import_batch_id', $batch->id)->get();
+        self::assertNotEmpty($contenedores);
+        foreach ($contenedores as $c) {
+            self::assertNotNull($c->ingreso_id, "Contenedor {$c->numero} sin ingreso_id");
+        }
+
+        $ingresos = Ingreso::query()->whereIn('id', $contenedores->pluck('ingreso_id'))->get();
+        self::assertNotEmpty($ingresos);
+        foreach ($ingresos as $i) {
+            self::assertTrue((bool) $i->bl_por_confirmar, "Ingreso BL {$i->bl} debería estar 'por confirmar'");
+        }
+
+        // Cada referencia con saldo > 0 genera una entrada en el ledger
+        $refsConSaldo = Referencia::query()->where('cantidad_actual', '>', 0)->count();
+        $entradas = MovimientoInventario::query()->where('tipo', 'entrada')->count();
+        self::assertSame($refsConSaldo, $entradas, 'Una entrada en el ledger por cada referencia con saldo');
     }
 
     #[Test]

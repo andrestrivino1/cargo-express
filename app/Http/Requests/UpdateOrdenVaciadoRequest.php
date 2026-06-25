@@ -18,6 +18,18 @@ class UpdateOrdenVaciadoRequest extends FormRequest
             'fecha_programada' => ['required', 'date'],
             'supervisor_id' => ['required', 'exists:users,id'],
             'notas' => ['nullable', 'string'],
+            'fotos' => ['nullable', 'array'],
+            'fotos.*' => ['image', 'mimes:jpg,png,webp', 'max:5120'],
         ];
+    }
+
+    /**
+     * Datos del vaciado sin los archivos (para `fill`).
+     *
+     * @return array<string, mixed>
+     */
+    public function datosVaciado(): array
+    {
+        return $this->safe()->only(['fecha_programada', 'supervisor_id', 'notas']);
     }
 }

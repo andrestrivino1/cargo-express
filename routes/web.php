@@ -87,7 +87,9 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
         Route::get('/', [IngresoMercanciaController::class, 'index'])->name('index');
         Route::get('/crear', [IngresoMercanciaController::class, 'create'])->name('create')->middleware('permission:ingreso.crear');
         Route::post('/', [IngresoMercanciaController::class, 'store'])->name('store')->middleware('permission:ingreso.crear');
-        Route::get('/{contenedor}', [IngresoMercanciaController::class, 'show'])->name('show');
+        Route::get('/{ingreso}/editar', [IngresoMercanciaController::class, 'edit'])->name('editar')->middleware('role:administrador|coordinador');
+        Route::put('/{ingreso}', [IngresoMercanciaController::class, 'update'])->name('update')->middleware('role:administrador|coordinador');
+        Route::get('/{ingreso}', [IngresoMercanciaController::class, 'show'])->name('show');
     });
 
     // Salida de mercancía (formulario consolidado + Orden de Salida ODC — reemplaza Entregas/Tarja)

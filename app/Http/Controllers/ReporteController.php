@@ -6,6 +6,7 @@ use App\Enums\MovimientoTipo;
 use App\Models\User;
 use App\Services\ReporteService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -37,12 +38,14 @@ class ReporteController extends Controller
         $movimientos = $this->reporteService->movimientos(
             $request->only('cliente_id', 'fecha_desde', 'fecha_hasta'),
             MovimientoTipo::Entrada,
+            porFechaReferencia: true,
         );
 
         return view('reportes.movimientos', [
             'movimientos' => $movimientos,
             'titulo' => 'Ingresos',
             'tipo' => 'ingresos',
+            'usarFechaIngreso' => true,
         ]);
     }
 
@@ -107,7 +110,7 @@ class ReporteController extends Controller
     /**
      * Exportar reporte de operación en el formato solicitado.
      */
-    public function export(Request $request): BinaryFileResponse|\Illuminate\Http\Response
+    public function export(Request $request): BinaryFileResponse|Response
     {
         $request->validate([
             'formato' => 'required|in:excel,pdf',
@@ -122,7 +125,7 @@ class ReporteController extends Controller
         if ($formato === 'excel') {
             $export = $this->reporteService->exportarExcel($filtros);
 
-            return Excel::download($export, 'reporte-operacion-' . now()->format('Y-m-d') . '.xlsx');
+            return Excel::download($export, 'reporte-operacion-'.now()->format('Y-m-d').'.xlsx');
         }
 
         return $this->reporteService->exportarPdf($filtros);
