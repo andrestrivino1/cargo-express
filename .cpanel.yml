@@ -1,19 +1,17 @@
 ---
 deployment:
   tasks:
-    # Rutas en el home de cPanel (cuenta tj2yywku2m4d)
-    - export APP=/home/tj2yywku2m4d/cargo_express
+    # La app vive en cargo-express (con guion). public_html es el document root.
+    - export APP=/home/tj2yywku2m4d/cargo-express
     - export PUB=/home/tj2yywku2m4d/public_html
-    - /bin/mkdir -p $APP
 
-    # Copiar el código de la app a cargo_express/ SIN tocar storage/ (uploads) ni .env
-    - /bin/cp -Rf ./app ./bootstrap ./config ./database ./lang ./public ./resources ./routes ./vendor $APP/
-    - /bin/cp -f ./artisan ./composer.json ./composer.lock $APP/
+    # Symlinks de storage para servir imágenes/documentos (/storage/...) desde el web.
+    # Idempotente: -sfn recrea el enlace si ya existe.
+    - /bin/ln -sfn $APP/storage/app/public $PUB/storage
+    - /bin/ln -sfn $APP/storage/app/public $APP/public/storage
 
-    # Sincronizar SOLO los assets públicos a public_html (sin pisar index.php ni .htaccess de producción)
-    - /bin/cp -Rf ./public/build $PUB/ || true
-    - /bin/cp -Rf ./public/images $PUB/ || true
-    - /bin/cp -Rf ./public/vendor $PUB/ || true
+    # Sincronizar assets públicos compilados a public_html.
+    - /bin/cp -Rf $APP/public/build $PUB/ 2>/dev/null || true
 
-    # Limpiar cachés de Laravel para que tome el código nuevo
-    - /bin/rm -f $APP/bootstrap/cache/config.php $APP/bootstrap/cache/routes-*.php $APP/bootstrap/cache/packages.php $APP/bootstrap/cache/services.php || true
+    # Limpiar cachés de Laravel para que tome el código recién desplegado.
+    - /bin/rm -f $APP/bootstrap/cache/config.php $APP/bootstrap/cache/routes-*.php $APP/bootstrap/cache/packages.php $APP/bootstrap/cache/services.php 2>/dev/null || true
