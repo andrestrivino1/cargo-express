@@ -85,4 +85,35 @@ class SalidaNitEdicionTest extends TestCase
         $this->assertSame('Cartago', $tarja->destino);
         $this->assertSame('900123', $cliente->fresh()->nit);
     }
+
+    public function test_editar_salida_reemplaza_la_foto_de_mercancia(): void
+    {
+        Storage::fake('public');
+        $this->seed(RolesAndPermissionsSeeder::class);
+        $admin = User::factory()->create();
+        $admin->assignRole('administrador');
+        $cliente = User::factory()->create();
+        $orden = OrdenCargue::create([
+            'cliente_id' => $cliente->id, 'despachador_id' => $admin->id,
+            'fecha_despacho' => now(), 'estado' => OrdenCargueEstado::Completada,
+        ]);
+        $tarja = $orden->tarjas()->create([
+            'despachador_id' => $admin->id, 'fecha_entrega' => now(),
+            'conductor' => 'C', 'vehiculo' => 'A', 'transportador' => 'T', 'destino' => 'D', 'consecutivo_odc' => 1,
+        ]);
+        $tarja->guardarArchivo(UploadedFile::fake()->image('vieja.jpg'), 'salidas/'.$tarja->id, 'foto', 'foto_mercancia');
+        $rutaVieja = $tarja->photos()->where('categoria', 'foto_mercancia')->first()->ruta;
+
+        $this->actingAs($admin)->put(route('salida.update', $tarja), [
+            'fecha_salida' => now()->format('Y-m-d'),
+            'conductor' => 'C', 'placa_vehiculo' => 'A', 'transportador' => 'T', 'destino' => 'D',
+            'foto_mercancia' => UploadedFile::fake()->image('nueva.jpg'),
+        ])->assertRedirect();
+
+        // sigue habiendo una sola foto de mercancía, pero con ruta distinta (reemplazada)
+        $fotos = $tarja->fresh()->photos()->where('categoria', 'foto_mercancia')->get();
+        $this->assertCount(1, $fotos);
+        $this->assertNotSame($rutaVieja, $fotos->first()->ruta);
+        Storage::disk('public')->assertMissing($rutaVieja);
+    }
 }

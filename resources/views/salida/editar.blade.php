@@ -21,7 +21,7 @@
     La <strong>mercancía despachada no se modifica</strong> para no alterar el inventario ya descontado.
 </div>
 
-<form action="{{ route('salida.update', $tarja) }}" method="POST">
+<form action="{{ route('salida.update', $tarja) }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
 
@@ -69,6 +69,34 @@
             <div class="col-12">
                 <label class="form-label">Observaciones / novedades</label>
                 <textarea name="observaciones" class="form-control" rows="2">{{ old('observaciones', $tarja->observaciones) }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    @php
+        $fotoMercancia = $tarja->photos->firstWhere('categoria', 'foto_mercancia');
+        $fotoConductor = $tarja->photos->firstWhere('categoria', 'foto_conductor');
+    @endphp
+    <div class="card mb-3">
+        <div class="card-header">Evidencias (cambiar es opcional)</div>
+        <div class="card-body row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Foto de la mercancía</label>
+                @if ($fotoMercancia)
+                <div class="mb-2"><a href="{{ $fotoMercancia->url }}" target="_blank"><img src="{{ $fotoMercancia->url }}" class="rounded border" style="height:90px;object-fit:cover"></a></div>
+                @endif
+                <input type="file" name="foto_mercancia" class="form-control @error('foto_mercancia') is-invalid @enderror" accept=".jpg,.jpeg,.png">
+                <div class="form-text">Deja vacío para conservar la actual.</div>
+                @error('foto_mercancia')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Foto del conductor</label>
+                @if ($fotoConductor)
+                <div class="mb-2"><a href="{{ $fotoConductor->url }}" target="_blank"><img src="{{ $fotoConductor->url }}" class="rounded border" style="height:90px;object-fit:cover"></a></div>
+                @endif
+                <input type="file" name="foto_conductor" class="form-control @error('foto_conductor') is-invalid @enderror" accept=".jpg,.jpeg,.png">
+                <div class="form-text">Deja vacío para conservar la actual.</div>
+                @error('foto_conductor')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
         </div>
     </div>

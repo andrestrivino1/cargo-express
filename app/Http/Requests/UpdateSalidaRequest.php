@@ -29,6 +29,10 @@ class UpdateSalidaRequest extends FormRequest
             'transportador' => ['required', 'string', 'max:150'],
             'destino' => ['required', 'string', 'max:150'],
             'observaciones' => ['nullable', 'string'],
+
+            // Reemplazo opcional de evidencias.
+            'foto_mercancia' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+            'foto_conductor' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
         ];
     }
 

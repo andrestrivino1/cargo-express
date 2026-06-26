@@ -82,7 +82,7 @@ class SalidaMercanciaController extends Controller
 
     public function edit(Tarja $tarja): View
     {
-        $tarja->load('ordenCargue.cliente');
+        $tarja->load('ordenCargue.cliente', 'photos');
 
         return view('salida.editar', compact('tarja'));
     }
@@ -105,6 +105,13 @@ class SalidaMercanciaController extends Controller
 
         if (! empty($data['nit']) && $tarja->ordenCargue) {
             User::whereKey($tarja->ordenCargue->cliente_id)->update(['nit' => $data['nit']]);
+        }
+
+        if ($request->hasFile('foto_mercancia')) {
+            $this->salidas->reemplazarFoto($tarja, 'foto_mercancia', $request->file('foto_mercancia'));
+        }
+        if ($request->hasFile('foto_conductor')) {
+            $this->salidas->reemplazarFoto($tarja, 'foto_conductor', $request->file('foto_conductor'));
         }
 
         return redirect()

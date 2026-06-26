@@ -10,6 +10,7 @@ use App\Models\Tarja;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class SalidaMercanciaService
@@ -104,6 +105,21 @@ class SalidaMercanciaService
 
             return $tarja;
         });
+    }
+
+    /**
+     * Reemplaza una evidencia (foto_mercancia / foto_conductor) por una nueva,
+     * borrando la anterior del disco. Conserva la categoría.
+     */
+    public function reemplazarFoto(Tarja $tarja, string $categoria, UploadedFile $archivo): void
+    {
+        $anterior = $tarja->photos()->where('categoria', $categoria)->first();
+        if ($anterior) {
+            Storage::disk('public')->delete($anterior->ruta);
+            $anterior->delete();
+        }
+
+        $tarja->guardarArchivo($archivo, "salidas/{$tarja->id}", 'foto', $categoria);
     }
 
     /**
