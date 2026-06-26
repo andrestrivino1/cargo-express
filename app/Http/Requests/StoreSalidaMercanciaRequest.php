@@ -18,6 +18,7 @@ class StoreSalidaMercanciaRequest extends FormRequest
     {
         return [
             'cliente_id' => ['required', 'exists:users,id'],
+            'nit' => ['nullable', 'string', 'max:30'],
             'fecha_salida' => ['required', 'date'],
             'conductor' => ['required', 'string', 'max:150'],
             'conductor_cedula' => ['nullable', 'string', 'max:20'],

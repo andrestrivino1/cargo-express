@@ -21,14 +21,19 @@
     <div class="card mb-3">
         <div class="card-header">Datos de la salida</div>
         <div class="card-body row g-3">
-            <div class="col-md-6">
+            <div class="col-md-5">
                 <label class="form-label">Cliente <span class="text-danger">*</span></label>
                 <select name="cliente_id" id="cliente_id" class="form-select" required>
                     <option value="">— Seleccione —</option>
                     @foreach ($clientes as $cliente)
-                    <option value="{{ $cliente->id }}" @selected(old('cliente_id') == $cliente->id)>{{ $cliente->name }}</option>
+                    <option value="{{ $cliente->id }}" data-nit="{{ $cliente->nit }}" @selected(old('cliente_id') == $cliente->id)>{{ $cliente->name }}</option>
                     @endforeach
                 </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">NIT del cliente</label>
+                <input type="text" name="nit" id="nit" value="{{ old('nit') }}" class="form-control" maxlength="30" placeholder="NIT">
+                <div class="form-text">Se guarda en el cliente y aparece en el ODC.</div>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Fecha de salida <span class="text-danger">*</span></label>
@@ -95,7 +100,7 @@
         </div>
     </div>
 
-    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i> Registrar salida y generar ODC</button>
+    <button type="submit" id="btnSubmit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i> Registrar salida y generar ODC</button>
     <a href="{{ route('salida.index') }}" class="btn btn-secondary">Cancelar</a>
 </form>
 
@@ -110,6 +115,9 @@
     document.getElementById('cliente_id').addEventListener('change', async function () {
         tbody.innerHTML = '';
         idx = 0;
+        // Precargar el NIT guardado del cliente (editable).
+        const nitInput = document.getElementById('nit');
+        if (nitInput) nitInput.value = this.selectedOptions[0]?.dataset.nit ?? '';
         if (!this.value) { addBtn.disabled = true; return; }
         const res = await fetch(`${baseUrl}/${this.value}/referencias`, { headers: { 'Accept': 'application/json' } });
         referencias = await res.json();
@@ -136,6 +144,13 @@
         tbody.appendChild(tr);
         idx++;
     }
+
+    // Anti doble-submit: bloquea el botón al enviar para no generar dos ODC.
+    document.querySelector('form').addEventListener('submit', function () {
+        const btn = document.getElementById('btnSubmit');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Registrando...';
+    });
 
     addBtn.addEventListener('click', addRow);
     tbody.addEventListener('click', e => { if (e.target.closest('.btn-remove')) e.target.closest('.detalle-row').remove(); });

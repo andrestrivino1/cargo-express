@@ -98,6 +98,8 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
         Route::get('/crear', [SalidaMercanciaController::class, 'create'])->name('create')->middleware('permission:salida.crear');
         Route::post('/', [SalidaMercanciaController::class, 'store'])->name('store')->middleware('permission:salida.crear');
         Route::get('/cliente/{cliente}/referencias', [SalidaMercanciaController::class, 'referenciasCliente'])->name('referencias-cliente');
+        Route::get('/{tarja}/editar', [SalidaMercanciaController::class, 'edit'])->name('editar')->middleware('role:administrador|coordinador');
+        Route::put('/{tarja}', [SalidaMercanciaController::class, 'update'])->name('update')->middleware('role:administrador|coordinador');
         Route::get('/{tarja}', [SalidaMercanciaController::class, 'show'])->name('show');
         Route::get('/{tarja}/orden-salida.pdf', [SalidaMercanciaController::class, 'ordenSalidaPdf'])->name('orden-salida.pdf');
     });

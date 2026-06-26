@@ -32,6 +32,12 @@ class SalidaMercanciaService
     public function registrar(array $data, array $fotos, User $despachador): Tarja
     {
         return DB::transaction(function () use ($data, $fotos, $despachador) {
+            // Guardar/actualizar el NIT en el cliente para que el ODC lo muestre y
+            // quede precargado en futuras salidas.
+            if (! empty($data['nit'])) {
+                User::whereKey($data['cliente_id'])->update(['nit' => $data['nit']]);
+            }
+
             $ordenCargue = OrdenCargue::create([
                 'cliente_id' => $data['cliente_id'],
                 'despachador_id' => $despachador->id,

@@ -11,9 +11,16 @@
             </ol>
         </nav>
     </div>
-    <a href="{{ route('salida.orden-salida.pdf', $tarja) }}" target="_blank" class="btn btn-dark">
-        <i class="bi bi-file-earmark-pdf me-1"></i> Orden de Salida (PDF)
-    </a>
+    <div class="d-flex gap-2">
+        @role('administrador|coordinador')
+        <a href="{{ route('salida.editar', $tarja) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-pencil me-1"></i> Editar
+        </a>
+        @endrole
+        <a href="{{ route('salida.orden-salida.pdf', $tarja) }}" target="_blank" class="btn btn-dark">
+            <i class="bi bi-file-earmark-pdf me-1"></i> Orden de Salida (PDF)
+        </a>
+    </div>
 </div>
 
 <div class="row">

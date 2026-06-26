@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSalidaMercanciaRequest;
+use App\Http\Requests\UpdateSalidaRequest;
 use App\Models\Referencia;
 use App\Models\Tarja;
 use App\Models\User;
@@ -77,6 +78,38 @@ class SalidaMercanciaController extends Controller
         $tarja->load(['ordenCargue.cliente', 'despachador', 'detalles.referencia.contenedor', 'photos']);
 
         return view('salida.show', compact('tarja'));
+    }
+
+    public function edit(Tarja $tarja): View
+    {
+        $tarja->load('ordenCargue.cliente');
+
+        return view('salida.editar', compact('tarja'));
+    }
+
+    public function update(UpdateSalidaRequest $request, Tarja $tarja): RedirectResponse
+    {
+        $data = $request->validated();
+
+        $tarja->update([
+            'fecha_entrega' => $data['fecha_salida'],
+            'conductor' => $data['conductor'],
+            'conductor_cedula' => $data['conductor_cedula'] ?? null,
+            'vehiculo' => $data['placa_vehiculo'],
+            'transportador' => $data['transportador'],
+            'destino' => $data['destino'],
+            'observaciones' => $data['observaciones'] ?? null,
+        ]);
+
+        $tarja->ordenCargue?->update(['fecha_despacho' => $data['fecha_salida']]);
+
+        if (! empty($data['nit']) && $tarja->ordenCargue) {
+            User::whereKey($tarja->ordenCargue->cliente_id)->update(['nit' => $data['nit']]);
+        }
+
+        return redirect()
+            ->route('salida.show', $tarja)
+            ->with('success', "Salida ODC-{$tarja->consecutivo_odc} actualizada.");
     }
 
     /**
