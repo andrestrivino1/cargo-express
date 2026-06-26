@@ -211,8 +211,8 @@
         <div class="row g-2 mt-2">
             @foreach($gateOutEvent->photos as $photo)
             <div class="col-md-3 col-6">
-                <a href="{{ Storage::url($photo->ruta) }}" target="_blank">
-                    <img src="{{ Storage::url($photo->ruta) }}" class="img-fluid rounded shadow-sm"
+                <a href="{{ $photo->url }}" target="_blank">
+                    <img src="{{ $photo->url }}" class="img-fluid rounded shadow-sm"
                          alt="{{ $photo->nombre }}">
                 </a>
             </div>

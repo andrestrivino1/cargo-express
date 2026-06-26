@@ -124,8 +124,8 @@
                         @if($novedad->photos->count() > 0)
                         <div class="d-flex flex-wrap gap-2">
                             @foreach($novedad->photos as $photo)
-                            <a href="{{ Storage::url($photo->ruta) }}" target="_blank">
-                                <img src="{{ Storage::url($photo->ruta) }}"
+                            <a href="{{ $photo->url }}" target="_blank">
+                                <img src="{{ $photo->url }}"
                                      alt="{{ $photo->nombre }}"
                                      class="rounded"
                                      style="width: 100px; height: 100px; object-fit: cover;">

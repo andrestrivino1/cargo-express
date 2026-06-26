@@ -8,9 +8,10 @@ use App\Http\Controllers\GateInController;
 use App\Http\Controllers\GateOutController;
 use App\Http\Controllers\ImportacionInventarioController;
 use App\Http\Controllers\IngresoMercanciaController;
+use App\Http\Controllers\ManualController;
 use App\Http\Controllers\NovedadController;
-use App\Http\Controllers\PendientesCompletarController;
 use App\Http\Controllers\OrdenServicioController;
+use App\Http\Controllers\PendientesCompletarController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReferenciaController;
@@ -23,9 +24,9 @@ use App\Http\Controllers\TransferenciaController;
 use App\Http\Controllers\TrazabilidadController;
 use App\Http\Controllers\UbicacionPatioController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\ManualController;
 use App\Http\Controllers\VaciadoController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,6 +38,7 @@ Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('dashboard');
     }
+
     return view('welcome');
 });
 
@@ -235,6 +237,15 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
 
     // Manual de usuario
     Route::get('/manual/pdf', [ManualController::class, 'pdf'])->name('manual.pdf');
+
+    // Servir archivos del disco público a través de Laravel (evita depender del
+    // symlink de storage, que en hosting compartido falla al apuntar fuera de public_html).
+    Route::get('/media/{path}', function (string $path) {
+        $disk = Storage::disk('public');
+        abort_unless($disk->exists($path), 404);
+
+        return response()->file($disk->path($path));
+    })->where('path', '.*')->name('media');
 });
 
 require __DIR__.'/auth.php';

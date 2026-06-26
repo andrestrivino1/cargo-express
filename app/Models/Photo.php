@@ -56,10 +56,12 @@ class Photo extends Model
     }
 
     /**
-     * Get the public URL for the photo.
+     * URL para mostrar/descargar el archivo. Se sirve a través de Laravel
+     * (ruta `media`) en lugar de un symlink de storage, que en hosting
+     * compartido suele fallar al apuntar fuera de public_html.
      */
     public function getUrlAttribute(): string
     {
-        return Storage::url($this->ruta);
+        return url('media/'.ltrim($this->ruta, '/'));
     }
 }
