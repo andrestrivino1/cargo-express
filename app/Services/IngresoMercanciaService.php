@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\ContenedorEstado;
 use App\Enums\DocumentoCategoria;
+use App\Models\Contenedor;
 use App\Models\Ingreso;
 use App\Models\Referencia;
 use App\Models\User;
@@ -46,25 +47,7 @@ class IngresoMercanciaService
                 ]);
 
                 foreach ($filaContenedor['referencias'] as $filaReferencia) {
-                    $referencia = Referencia::create([
-                        'contenedor_id' => $contenedor->id,
-                        'cliente_id' => $data['cliente_id'],
-                        'codigo' => $filaReferencia['codigo'],
-                        'descripcion' => $filaReferencia['descripcion'],
-                        'cantidad_inicial' => $filaReferencia['cantidad'],
-                        'cantidad_actual' => $filaReferencia['cantidad'],
-                        'unidad_medida' => $filaReferencia['unidad_medida'],
-                        'peso' => $filaReferencia['peso'] ?? null,
-                        'ubicacion_patio_id' => $filaReferencia['ubicacion_patio_id'] ?? null,
-                        'fecha_ingreso' => $fecha,
-                    ]);
-
-                    $this->movimientos->registrarEntrada(
-                        $referencia,
-                        (int) $filaReferencia['cantidad'],
-                        $usuario,
-                        $ingreso,
-                    );
+                    $this->crearReferencia($contenedor, $filaReferencia, $usuario, $ingreso);
                 }
             }
 
@@ -75,6 +58,64 @@ class IngresoMercanciaService
 
             return $ingreso;
         });
+    }
+
+    /**
+     * Actualiza un ingreso desde la pantalla de edición: confirma BL/cliente/fecha,
+     * adjunta imágenes (aditivo) y, opcionalmente, agrega una referencia nueva a un
+     * contenedor del ingreso (con su movimiento de inventario). Todo es atómico.
+     *
+     * @param  array<string, mixed>  $data  bl, cliente_id, fecha_ingreso
+     * @param  array<int, UploadedFile>  $fotos  imágenes a agregar (puede estar vacío)
+     * @param  array<string, mixed>|null  $nuevaReferencia  contenedor_id + datos de la referencia, o null
+     */
+    public function actualizar(Ingreso $ingreso, array $data, array $fotos, ?array $nuevaReferencia, User $usuario): Ingreso
+    {
+        return DB::transaction(function () use ($ingreso, $data, $fotos, $nuevaReferencia, $usuario) {
+            $ingreso->update([
+                'bl' => $data['bl'],
+                'cliente_id' => $data['cliente_id'],
+                'fecha_ingreso' => $data['fecha_ingreso'],
+                'bl_por_confirmar' => false,
+            ]);
+
+            if (! empty($fotos)) {
+                $ingreso->guardarFotos($fotos, "ingresos/{$ingreso->id}");
+            }
+
+            if (! empty($nuevaReferencia['codigo'])) {
+                $contenedor = $ingreso->contenedores()->findOrFail($nuevaReferencia['contenedor_id']);
+                $this->crearReferencia($contenedor, $nuevaReferencia, $usuario, $ingreso);
+            }
+
+            return $ingreso;
+        });
+    }
+
+    /**
+     * Crea una referencia en un contenedor (heredando cliente y fecha del ingreso)
+     * y registra su movimiento de inventario de entrada. Reutilizado por el alta y
+     * por la edición de ingresos.
+     *
+     * @param  array<string, mixed>  $fila  codigo, descripcion, cantidad, unidad_medida, peso?, ubicacion_patio_id?
+     */
+    private function crearReferencia(Contenedor $contenedor, array $fila, User $usuario, Ingreso $ingreso): Referencia
+    {
+        $referencia = $contenedor->referencias()->create([
+            'cliente_id' => $ingreso->cliente_id,
+            'codigo' => $fila['codigo'],
+            'descripcion' => $fila['descripcion'],
+            'cantidad_inicial' => $fila['cantidad'],
+            'cantidad_actual' => $fila['cantidad'],
+            'unidad_medida' => $fila['unidad_medida'],
+            'peso' => $fila['peso'] ?? null,
+            'ubicacion_patio_id' => $fila['ubicacion_patio_id'] ?? null,
+            'fecha_ingreso' => $ingreso->fecha_ingreso,
+        ]);
+
+        $this->movimientos->registrarEntrada($referencia, (int) $fila['cantidad'], $usuario, $ingreso);
+
+        return $referencia;
     }
 
     /**

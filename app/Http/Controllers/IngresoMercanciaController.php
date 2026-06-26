@@ -66,17 +66,27 @@ class IngresoMercanciaController extends Controller
 
     public function edit(Ingreso $ingreso): View
     {
-        $clientes = User::role('cliente')->orderBy('name')->get();
+        $ingreso->load([
+            'contenedores.referencias.producto',
+            'contenedores.referencias.ubicacionPatio',
+            'fotos',
+        ]);
 
-        return view('ingreso.editar', compact('ingreso', 'clientes'));
+        $clientes = User::role('cliente')->orderBy('name')->get();
+        $ubicaciones = UbicacionPatio::activas()->orderBy('modulo')->orderBy('posicion')->get();
+
+        return view('ingreso.editar', compact('ingreso', 'clientes', 'ubicaciones'));
     }
 
     public function update(UpdateIngresoRequest $request, Ingreso $ingreso): RedirectResponse
     {
-        $data = $request->validated();
-        // Al confirmar el BL desde la edición, se baja la bandera "por confirmar".
-        $data['bl_por_confirmar'] = false;
-        $ingreso->update($data);
+        $this->ingresos->actualizar(
+            $ingreso,
+            $request->validated(),
+            $request->file('fotos', []),
+            $request->validated('nueva_referencia'),
+            $request->user(),
+        );
 
         return redirect()
             ->route('ingreso.show', $ingreso)

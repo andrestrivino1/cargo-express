@@ -24,12 +24,12 @@
 <div class="alert alert-danger"><ul class="mb-0">@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>
 @endif
 
-<div class="card">
-    <div class="card-body">
-        <form action="{{ route('ingreso.update', $ingreso) }}" method="POST">
-            @csrf
-            @method('PUT')
+<form action="{{ route('ingreso.update', $ingreso) }}" method="POST" enctype="multipart/form-data">
+    @csrf
+    @method('PUT')
 
+    <div class="card">
+        <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label">BL <span class="text-danger">*</span></label>
@@ -49,12 +49,18 @@
                     <input type="date" name="fecha_ingreso" value="{{ old('fecha_ingreso', $ingreso->fecha_ingreso?->format('Y-m-d')) }}" max="{{ now()->format('Y-m-d') }}" class="form-control" required>
                 </div>
             </div>
-
-            <div class="mt-4 d-flex gap-2">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i> Guardar</button>
-                <a href="{{ route('ingreso.show', $ingreso) }}" class="btn btn-outline-secondary">Cancelar</a>
-            </div>
-        </form>
+        </div>
     </div>
-</div>
+
+    @include('ingreso.partials._referencias')
+
+    @include('ingreso.partials._imagenes')
+
+    @include('ingreso.partials._agregar-referencia')
+
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i> Guardar</button>
+        <a href="{{ route('ingreso.show', $ingreso) }}" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+</form>
 @endsection
