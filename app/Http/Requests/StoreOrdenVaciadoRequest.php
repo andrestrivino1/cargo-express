@@ -16,7 +16,9 @@ class StoreOrdenVaciadoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'contenedor_id' => ['required', 'exists:contenedores,id'],
+            // Se permite elegir de la lista (contenedor_id) o escribir el número manualmente.
+            'contenedor_id' => ['nullable', 'exists:contenedores,id'],
+            'numero_contenedor' => ['nullable', 'string', 'max:20'],
             'fecha_programada' => ['required', 'date'],
             'notas' => ['nullable', 'string'],
             'fotos' => ['nullable', 'array'],
@@ -27,6 +29,15 @@ class StoreOrdenVaciadoRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
+            // Debe venir uno de los dos: contenedor de la lista o número manual.
+            if (! $this->contenedor_id && ! $this->filled('numero_contenedor')) {
+                $validator->errors()->add(
+                    'contenedor_id',
+                    'Seleccione un contenedor de la lista o ingrese el número manualmente.'
+                );
+            }
+
+            // Si eligió uno de la lista, debe estar "En Patio".
             if ($this->contenedor_id) {
                 $contenedor = Contenedor::find($this->contenedor_id);
 

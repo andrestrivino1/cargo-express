@@ -18,24 +18,41 @@
                 <form action="{{ route('vaciado.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
-                    {{-- Contenedor --}}
+                    {{-- Contenedor: elegir de la lista o ingresar manualmente --}}
                     <div class="mb-3">
-                        <label for="contenedor_id" class="form-label">Contenedor <span class="text-danger">*</span></label>
-                        <select class="form-select @error('contenedor_id') is-invalid @enderror"
-                                id="contenedor_id"
-                                name="contenedor_id"
-                                required>
-                            <option value="">Seleccione un contenedor</option>
-                            @foreach($contenedores as $contenedor)
-                            <option value="{{ $contenedor->id }}" {{ old('contenedor_id') == $contenedor->id ? 'selected' : '' }}>
-                                {{ $contenedor->numero }} - {{ $contenedor->estado->label() }}
-                            </option>
-                            @endforeach
-                        </select>
-                        @error('contenedor_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <div class="form-text">Solo se muestran contenedores con estado "En Patio".</div>
+                        <label class="form-label">Contenedor <span class="text-danger">*</span></label>
+
+                        @php $modoManual = old('numero_contenedor') && ! old('contenedor_id'); @endphp
+                        <div class="btn-group btn-group-sm mb-2 d-flex" role="group">
+                            <input type="radio" class="btn-check" name="modo_contenedor" id="modo_lista" value="lista" @checked(! $modoManual)>
+                            <label class="btn btn-outline-secondary" for="modo_lista"><i class="bi bi-list-ul me-1"></i> Seleccionar de la lista</label>
+                            <input type="radio" class="btn-check" name="modo_contenedor" id="modo_manual" value="manual" @checked($modoManual)>
+                            <label class="btn btn-outline-secondary" for="modo_manual"><i class="bi bi-pencil me-1"></i> Ingresar manualmente</label>
+                        </div>
+
+                        {{-- Lista --}}
+                        <div id="bloque_lista" class="{{ $modoManual ? 'd-none' : '' }}">
+                            <select class="form-select @error('contenedor_id') is-invalid @enderror" id="contenedor_id" name="contenedor_id">
+                                <option value="">Seleccione un contenedor</option>
+                                @foreach($contenedores as $contenedor)
+                                <option value="{{ $contenedor->id }}" {{ old('contenedor_id') == $contenedor->id ? 'selected' : '' }}>
+                                    {{ $contenedor->numero }} - {{ $contenedor->estado->label() }}
+                                </option>
+                                @endforeach
+                            </select>
+                            <div class="form-text">Solo se muestran contenedores con estado "En Patio".</div>
+                        </div>
+
+                        {{-- Manual --}}
+                        <div id="bloque_manual" class="{{ $modoManual ? '' : 'd-none' }}">
+                            <input type="text" class="form-control @error('numero_contenedor') is-invalid @enderror"
+                                   id="numero_contenedor" name="numero_contenedor" maxlength="20"
+                                   value="{{ old('numero_contenedor') }}" placeholder="N° de contenedor (ej. MEDU1234567)">
+                            <div class="form-text">Si no está en la lista, escríbelo aquí (se registrará en patio).</div>
+                        </div>
+
+                        @error('contenedor_id')<div class="text-danger small">{{ $message }}</div>@enderror
+                        @error('numero_contenedor')<div class="text-danger small">{{ $message }}</div>@enderror
                     </div>
 
                     {{-- Fecha Programada --}}
@@ -116,6 +133,21 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // Toggle contenedor: lista vs manual
+    const bloqueLista = document.getElementById('bloque_lista');
+    const bloqueManual = document.getElementById('bloque_manual');
+    const selectCont = document.getElementById('contenedor_id');
+    const inputManual = document.getElementById('numero_contenedor');
+    function aplicarModo(modo) {
+        const manual = modo === 'manual';
+        bloqueManual.classList.toggle('d-none', !manual);
+        bloqueLista.classList.toggle('d-none', manual);
+        if (manual) { selectCont.value = ''; } else { inputManual.value = ''; }
+    }
+    document.querySelectorAll('input[name="modo_contenedor"]').forEach(r => {
+        r.addEventListener('change', () => aplicarModo(r.value));
+    });
+
     const lista = document.getElementById('fotos-lista');
     const addBtn = document.getElementById('add-foto');
 

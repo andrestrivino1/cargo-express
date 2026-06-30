@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\ContenedorEstado;
 use App\Enums\OrdenVaciadoEstado;
+use App\Models\Contenedor;
 use App\Models\Novedad;
 use App\Models\OrdenVaciado;
 use App\Models\Referencia;
@@ -16,7 +18,7 @@ class VaciadoService
     public function programar(array $data, User $supervisor): OrdenVaciado
     {
         $orden = OrdenVaciado::create([
-            'contenedor_id' => $data['contenedor_id'],
+            'contenedor_id' => $this->resolverContenedorId($data),
             'supervisor_id' => $supervisor->id,
             'fecha_programada' => $data['fecha_programada'],
             'notas' => $data['notas'] ?? null,
@@ -28,6 +30,26 @@ class VaciadoService
         }
 
         return $orden;
+    }
+
+    /**
+     * Devuelve el id del contenedor: el seleccionado de la lista, o uno
+     * encontrado/creado por número cuando se ingresa manualmente.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function resolverContenedorId(array $data): int
+    {
+        if (! empty($data['contenedor_id'])) {
+            return (int) $data['contenedor_id'];
+        }
+
+        $contenedor = Contenedor::firstOrCreate(
+            ['numero' => trim((string) $data['numero_contenedor'])],
+            ['estado' => ContenedorEstado::EnPatio, 'fecha_ingreso' => now()],
+        );
+
+        return $contenedor->id;
     }
 
     /**
