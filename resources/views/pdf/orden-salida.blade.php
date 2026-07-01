@@ -88,6 +88,16 @@
         </tbody>
     </table>
 
+    {{-- Observaciones de la salida --}}
+    @if (!empty($tarja->observaciones))
+    <div class="section-bar">Observaciones</div>
+    <table class="detalle">
+        <tbody>
+            <tr><td style="padding: 6pt;">{{ $tarja->observaciones }}</td></tr>
+        </tbody>
+    </table>
+    @endif
+
     {{-- Datos del conductor y vehículo --}}
     <div class="section-bar">Datos del conductor y veh&iacute;culo</div>
     <table class="driver-table">
