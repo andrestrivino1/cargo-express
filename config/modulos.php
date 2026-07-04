@@ -23,11 +23,15 @@ return [
     'usuarios' => true,    // administración
     'ubicaciones' => true, // administración
 
-    // Reactivados (el sistema vuelve a operar con varios usuarios; datos e historial intactos)
-    'solicitudes' => true,
-    'gate_in' => true,       // ingreso por pasos
-    'entregas' => true,      // Orden de Cargue / Tarja
+    // Transferencias: única forma de reubicar mercancía entre ubicaciones y de cambiar
+    // titularidad entre clientes (el flujo nuevo no lo cubre). Se mantiene visible.
     'transferencias' => true,
-    'gate_out' => true,
+
+    // Cadena vieja redundante — reemplazada por el flujo nuevo Ingreso/Salida y oculta
+    // de nuevo (datos e historial intactos). No escriben en el ledger movimientos_inventario.
+    'solicitudes' => false,   // solo alimentaba a Gate-In
+    'gate_in' => false,       // reemplazado por 'ingreso'
+    'entregas' => false,      // Orden de Cargue / Tarja, reemplazado por 'salida' (ODC)
+    'gate_out' => false,      // reemplazado por 'salida'
     'importaciones' => true, // importación histórica + pendientes por completar (reactivado para importar el inventario actual)
 ];
