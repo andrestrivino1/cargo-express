@@ -23,11 +23,11 @@ return [
     'usuarios' => true,    // administración
     'ubicaciones' => true, // administración
 
-    // No utilizados en el flujo ajustado (ocultos — datos e historial intactos)
-    'solicitudes' => false,
-    'gate_in' => false,       // ingreso por pasos (reemplazado por 'ingreso')
-    'entregas' => false,      // Orden de Cargue / Tarja (reemplazado por 'salida')
-    'transferencias' => false,
-    'gate_out' => false,
+    // Reactivados (el sistema vuelve a operar con varios usuarios; datos e historial intactos)
+    'solicitudes' => true,
+    'gate_in' => true,       // ingreso por pasos
+    'entregas' => true,      // Orden de Cargue / Tarja
+    'transferencias' => true,
+    'gate_out' => true,
     'importaciones' => true, // importación histórica + pendientes por completar (reactivado para importar el inventario actual)
 ];
