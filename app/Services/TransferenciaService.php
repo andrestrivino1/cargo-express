@@ -11,6 +11,10 @@ use InvalidArgumentException;
 
 class TransferenciaService
 {
+    public function __construct(
+        private readonly MovimientoInventarioService $movimientos,
+    ) {}
+
     /**
      * Transferir productos entre módulos (ubicaciones) del mismo cliente.
      */
@@ -67,6 +71,11 @@ class TransferenciaService
                 'cantidad' => $data['cantidad'],
             ]);
 
+            // Registrar en el ledger: salida de la referencia origen + entrada en la destino,
+            // ambos ligados a la transferencia para mantener el inventario auditable y cuadrado.
+            $this->movimientos->registrarSalida($referencia, $data['cantidad'], $usuario, $transferencia, 'Transferencia entre módulos');
+            $this->movimientos->registrarEntrada($referenciaDestino, $data['cantidad'], $usuario, $transferencia, 'Transferencia entre módulos');
+
             return $transferencia;
         });
     }
@@ -121,6 +130,11 @@ class TransferenciaService
                 'motivo' => $data['motivo'],
                 'autorizacion_cliente' => $data['autorizacion_cliente'],
             ]);
+
+            // Registrar en el ledger: salida de la referencia origen + entrada en la destino,
+            // ambos ligados a la transferencia para mantener el inventario auditable y cuadrado.
+            $this->movimientos->registrarSalida($referencia, $data['cantidad'], $usuario, $transferencia, 'Transferencia entre clientes');
+            $this->movimientos->registrarEntrada($referenciaDestino, $data['cantidad'], $usuario, $transferencia, 'Transferencia entre clientes');
 
             return $transferencia;
         });
