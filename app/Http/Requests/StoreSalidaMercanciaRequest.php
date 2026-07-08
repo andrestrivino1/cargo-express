@@ -17,6 +17,7 @@ class StoreSalidaMercanciaRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'idempotency_key' => ['required', 'uuid'],
             'cliente_id' => ['required', 'exists:users,id'],
             'nit' => ['nullable', 'string', 'max:30'],
             'fecha_salida' => ['required', 'date'],

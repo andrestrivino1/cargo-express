@@ -50,6 +50,7 @@ class SalidaMercanciaTest extends TestCase
     private function payload(int $clienteId, int $refId, int $cantidad): array
     {
         return [
+            'idempotency_key' => (string) \Illuminate\Support\Str::uuid(),
             'cliente_id' => $clienteId,
             'fecha_salida' => now()->format('Y-m-d'),
             'conductor' => 'Wilmer Arango',

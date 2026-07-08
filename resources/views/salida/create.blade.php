@@ -17,6 +17,8 @@
 
 <form action="{{ route('salida.store') }}" method="POST" enctype="multipart/form-data">
     @csrf
+    {{-- Token de un solo uso: evita que un reenvío genere una salida duplicada. --}}
+    <input type="hidden" name="idempotency_key" value="{{ old('idempotency_key', $idempotencyKey) }}">
 
     <div class="card mb-3">
         <div class="card-header">Datos de la salida</div>

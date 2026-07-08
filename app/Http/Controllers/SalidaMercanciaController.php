@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\SalidaDuplicadaException;
 use App\Http\Requests\StoreSalidaMercanciaRequest;
 use App\Http\Requests\UpdateSalidaRequest;
 use App\Models\Referencia;
@@ -12,6 +13,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -31,8 +33,10 @@ class SalidaMercanciaController extends Controller
     public function create(): View
     {
         $clientes = User::role('cliente')->orderBy('name')->get();
+        // Token de un solo uso que identifica este intento de registro (idempotencia).
+        $idempotencyKey = (string) Str::uuid();
 
-        return view('salida.create', compact('clientes'));
+        return view('salida.create', compact('clientes', 'idempotencyKey'));
     }
 
     /**
@@ -59,14 +63,21 @@ class SalidaMercanciaController extends Controller
 
     public function store(StoreSalidaMercanciaRequest $request): RedirectResponse
     {
-        $tarja = $this->salidas->registrar(
-            $request->validated(),
-            [
-                'mercancia' => $request->file('foto_mercancia'),
-                'conductor' => $request->file('foto_conductor'),
-            ],
-            $request->user(),
-        );
+        try {
+            $tarja = $this->salidas->registrar(
+                $request->validated(),
+                [
+                    'mercancia' => $request->file('foto_mercancia'),
+                    'conductor' => $request->file('foto_conductor'),
+                ],
+                $request->user(),
+            );
+        } catch (SalidaDuplicadaException $e) {
+            // Reenvío de un intento ya procesado: llevar a la ODC existente, sin error.
+            return redirect()
+                ->route('salida.show', $e->tarjaId())
+                ->with('info', 'Este despacho ya estaba registrado; se muestra la Orden de Salida existente.');
+        }
 
         return redirect()
             ->route('salida.show', $tarja)

@@ -1,6 +1,6 @@
 # cargo_express Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-06-26
+Auto-generated from all feature plans. Last updated: 2026-07-08
 
 ## Active Technologies
 - PHP 8.2 + Laravel 12, Maatwebsite/Excel 3.1 (ya instalado), Spatie Laravel-Permission 6.25 (RBAC ya en uso), Barryvdh/Laravel-DomPDF 3.1 (export PDF), Laravel Queue driver `database` (ya configurado por defecto), Laravel Breeze (auth) (002-import-excel-inventory)
@@ -15,6 +15,8 @@ Auto-generated from all feature plans. Last updated: 2026-06-26
 - MySQL 8 / MariaDB (prod). **1 tabla nueva** `ingresos` + columna `ingreso_id` (nullable) en `contenedores`. `referencias.ubicacion_patio_id` ya es nullable. `contenedores.fecha_ingreso` y `referencias.fecha_ingreso` ya existen. (006-ajustes-ingreso-vaciado)
 - PHP 8.2 + Laravel 12 + Spatie Laravel-Permission 6.25 (RBAC), Laravel Breeze (auth de sesión), Blade + Bootstrap 5.3. Sin nuevas dependencias. (007-edit-ingreso-bl-references)
 - MySQL 8 / MariaDB (prod). Reutiliza tablas existentes (`ingresos`, `contenedores`, `referencias`, `photos`, `movimientos_inventario`). **Sin migraciones nuevas.** Archivos de imagen en `Storage::disk('public')` bajo `ingresos/{id}`. (007-edit-ingreso-bl-references)
+- PHP 8.2 + Laravel 12 + Spatie Laravel-Permission 6.25 (RBAC), Laravel Breeze (auth de sesión), Barryvdh DomPDF, Maatwebsite Excel — **sin dependencias nuevas** (008-prevent-duplicate-salidas)
+- MySQL 8 (dev) / MariaDB (prod). **1 tabla nueva** `idempotency_keys`. Sin cambios a tablas existentes. Driver de sesión/cache: `database`. (008-prevent-duplicate-salidas)
 
 - PHP 8.2+ con Laravel 11 + Laravel 11, Bootstrap 5.3, Laravel Breeze (auth), Spatie Laravel-Permission (RBAC), Maatwebsite Excel (exportación), DomPDF (exportación PDF), Laravel Notifications (WhatsApp/email) (001-cargo-traceability-system)
 
@@ -34,9 +36,9 @@ tests/
 PHP 8.2+ con Laravel 11: Follow standard conventions
 
 ## Recent Changes
+- 008-prevent-duplicate-salidas: Added PHP 8.2 + Laravel 12 + Spatie Laravel-Permission 6.25 (RBAC), Laravel Breeze (auth de sesión), Barryvdh DomPDF, Maatwebsite Excel — **sin dependencias nuevas**
 - 007-edit-ingreso-bl-references: Added PHP 8.2 + Laravel 12 + Spatie Laravel-Permission 6.25 (RBAC), Laravel Breeze (auth de sesión), Blade + Bootstrap 5.3. Sin nuevas dependencias.
 - 006-ajustes-ingreso-vaciado: Added PHP 8.2 + Laravel 12 + Spatie Laravel-Permission 6.25 (RBAC), Laravel Breeze, Barryvdh/Laravel-DomPDF 3.1, Maatwebsite/Excel 3.1. **Sin nuevas dependencias**.
-- 005-ajuste-requerimientos-operativos: Added PHP 8.2 + Laravel 12 + Spatie Laravel-Permission 6.25 (RBAC), Laravel Breeze (auth de sesión), Barryvdh/Laravel-DomPDF 3.1 (PDF), Maatwebsite/Excel 3.1 (export). **Sin nuevas dependencias** (hosting compartido sin SSH).
 
 
 <!-- MANUAL ADDITIONS START -->

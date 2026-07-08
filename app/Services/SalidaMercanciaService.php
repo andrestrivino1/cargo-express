@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\DocumentoCategoria;
 use App\Enums\OrdenCargueEstado;
+use App\Exceptions\SalidaDuplicadaException;
 use App\Models\OrdenCargue;
 use App\Models\Referencia;
 use App\Models\Tarja;
@@ -15,9 +16,13 @@ use Illuminate\Validation\ValidationException;
 
 class SalidaMercanciaService
 {
+    /** Ámbito de idempotencia para el registro de salidas. */
+    private const IDEMPOTENCY_SCOPE = 'salida';
+
     public function __construct(
         private readonly MovimientoInventarioService $movimientos,
         private readonly ConsecutivoService $consecutivos,
+        private readonly IdempotencyService $idempotencia,
     ) {}
 
     /**
@@ -28,11 +33,32 @@ class SalidaMercanciaService
      * @param  array<string, mixed>  $data
      * @param  array{mercancia: UploadedFile, conductor: UploadedFile}  $fotos
      *
+     * Idempotencia: si el mismo intento (idempotency_key) ya generó una salida,
+     * no se crea otra; se lanza {@see SalidaDuplicadaException} con el id de la
+     * tarja existente para que el controlador redirija a la ODC ya creada.
+     *
      * @throws ValidationException si el saldo disponible es insuficiente.
+     * @throws SalidaDuplicadaException si el intento ya fue procesado.
      */
     public function registrar(array $data, array $fotos, User $despachador): Tarja
     {
         return DB::transaction(function () use ($data, $fotos, $despachador) {
+            // Barrera de idempotencia: primera sentencia de la transacción. Si el
+            // token ya existía, este intento es un reenvío → redirigir a la ODC creada.
+            $token = $data['idempotency_key'];
+            if (! $this->idempotencia->reservar($token, self::IDEMPOTENCY_SCOPE, $despachador->id)) {
+                $existenteId = $this->idempotencia->recursoReservado($token, self::IDEMPOTENCY_SCOPE);
+
+                if ($existenteId === null) {
+                    // Otra petición reservó el token pero aún no confirma la salida.
+                    throw ValidationException::withMessages([
+                        'idempotency_key' => 'El registro está en proceso. Intente de nuevo en unos segundos.',
+                    ]);
+                }
+
+                throw new SalidaDuplicadaException($existenteId);
+            }
+
             // Guardar/actualizar el NIT en el cliente para que el ODC lo muestre y
             // quede precargado en futuras salidas.
             if (! empty($data['nit'])) {
@@ -102,6 +128,9 @@ class SalidaMercanciaService
             $tarja->guardarArchivo($fotos['conductor'], $carpeta, 'foto', DocumentoCategoria::FotoConductor->value);
 
             $ordenCargue->update(['estado' => OrdenCargueEstado::Completada]);
+
+            // Enlazar el token con la salida creada para resolver reenvíos futuros.
+            $this->idempotencia->asociarRecurso($token, $tarja->id);
 
             return $tarja;
         });

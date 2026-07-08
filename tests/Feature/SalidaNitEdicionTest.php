@@ -42,6 +42,7 @@ class SalidaNitEdicionTest extends TestCase
         ['despachador' => $d, 'cliente' => $c, 'ref' => $ref] = $this->base();
 
         $this->actingAs($d)->post(route('salida.store'), [
+            'idempotency_key' => (string) \Illuminate\Support\Str::uuid(),
             'cliente_id' => $c->id,
             'nit' => '9017949782',
             'fecha_salida' => now()->format('Y-m-d'),
