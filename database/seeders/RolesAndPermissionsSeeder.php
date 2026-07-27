@@ -59,11 +59,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'reportes.ver',
         ]);
 
+        // Portero: flujo nuevo Ingreso/Salida (reemplaza gate-in/gate-out, ocultos en config/modulos.php)
         Role::create(['name' => 'portero'])->givePermissionTo([
-            'gate-in.ver',
-            'gate-in.crear',
-            'gate-out.ver',
-            'gate-out.crear',
+            'ingreso.ver',
+            'ingreso.crear',
+            'salida.ver',
+            'salida.crear',
         ]);
 
         Role::create(['name' => 'operador'])->givePermissionTo([
