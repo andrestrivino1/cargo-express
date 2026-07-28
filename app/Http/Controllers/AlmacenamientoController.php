@@ -23,23 +23,29 @@ class AlmacenamientoController extends Controller
     {
         $filtros = $request->only(['cliente_id', 'codigo', 'modulo', 'fecha_desde', 'fecha_hasta']);
 
-        $referencias = $this->inventarioService->consultarInventario($filtros);
+        // El usuario va al servicio: si es un cliente, allí se fuerza el filtro a
+        // su propia mercancía sin importar el cliente_id que llegue en la URL.
+        $referencias = $this->inventarioService->consultarInventario($filtros, $request->user());
 
-        $clientes = User::role('cliente')->orderBy('name')->get();
+        $esCliente = $request->user()?->hasRole('cliente') ?? false;
+
+        // Un cliente no elige de qué cliente ver el inventario: solo ve el suyo.
+        $clientes = $esCliente ? collect() : User::role('cliente')->orderBy('name')->get();
+
         $modulos = UbicacionPatio::activas()
             ->select('modulo')
             ->distinct()
             ->orderBy('modulo')
             ->pluck('modulo');
 
-        return view('almacenamiento.index', compact('referencias', 'clientes', 'modulos', 'filtros'));
+        return view('almacenamiento.index', compact('referencias', 'clientes', 'modulos', 'filtros', 'esCliente'));
     }
 
     public function exportExcel(Request $request)
     {
         $filtros = $request->only(['cliente_id', 'codigo', 'modulo', 'fecha_desde', 'fecha_hasta']);
 
-        $export = $this->inventarioService->exportarInventario($filtros);
+        $export = $this->inventarioService->exportarInventario($filtros, $request->user());
 
         return Excel::download($export, 'inventario_' . now()->format('Ymd_His') . '.xlsx');
     }
@@ -48,7 +54,7 @@ class AlmacenamientoController extends Controller
     {
         $filtros = $request->only(['cliente_id', 'codigo', 'modulo', 'fecha_desde', 'fecha_hasta']);
 
-        return $this->inventarioService->exportarInventarioPdf($filtros);
+        return $this->inventarioService->exportarInventarioPdf($filtros, $request->user());
     }
 
     public function edit(Referencia $referencia): View

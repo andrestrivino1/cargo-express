@@ -17,6 +17,9 @@
 
 <form action="{{ route('ingreso.store') }}" method="POST" enctype="multipart/form-data">
     @csrf
+    {{-- Token del intento: si el formulario se envía dos veces, el segundo envío
+         aterriza en el ingreso ya creado en vez de duplicarlo. --}}
+    <input type="hidden" name="idempotency_key" value="{{ old('idempotency_key', $idempotencyKey) }}">
 
     <div class="card mb-3">
         <div class="card-header">Datos del BL</div>

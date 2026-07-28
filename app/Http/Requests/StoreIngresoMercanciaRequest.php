@@ -18,6 +18,9 @@ class StoreIngresoMercanciaRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // Token del intento: barrera anti-duplicados por doble envío.
+            'idempotency_key' => ['required', 'uuid'],
+
             'bl' => ['required', 'string', 'max:100'],
             'cliente_id' => ['required', 'exists:users,id'],
             'fecha_ingreso' => ['required', 'date', 'before_or_equal:today'],

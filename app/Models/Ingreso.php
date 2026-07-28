@@ -43,4 +43,13 @@ class Ingreso extends Model
     {
         return $this->hasMany(Contenedor::class);
     }
+
+    /**
+     * Citas agendadas para los contenedores de este ingreso. Solo lectura: el
+     * módulo Ingreso no cambia, la cita se agenda desde el módulo Citas.
+     */
+    public function citas(): HasMany
+    {
+        return $this->hasMany(Cita::class);
+    }
 }

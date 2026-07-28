@@ -54,6 +54,16 @@
                         @role('administrador|coordinador')
                         <a href="{{ route('ingreso.editar', $ingreso) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
                         @endrole
+                        @can('ingreso.eliminar')
+                        <form action="{{ route('ingreso.destroy', $ingreso) }}" method="POST" class="d-inline"
+                              onsubmit="return confirm('¿Eliminar el ingreso del BL {{ $ingreso->bl }}?\n\nSe borrarán sus {{ $ingreso->contenedores_count }} contenedor(es), sus referencias y sus documentos. Esta acción no se puede deshacer.\n\nSi la mercancía ya se movió, el sistema lo impedirá.')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar ingreso">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        @endcan
                     </td>
                 </tr>
                 @empty

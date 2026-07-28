@@ -8,6 +8,7 @@ use App\Traits\HasPhotos;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Contenedor extends Model
 {
@@ -60,6 +61,19 @@ class Contenedor extends Model
     public function referencias(): HasMany
     {
         return $this->hasMany(Referencia::class);
+    }
+
+    public function citas(): HasMany
+    {
+        return $this->hasMany(Cita::class);
+    }
+
+    /**
+     * Cita más reciente del contenedor, para mostrar su estado desde el ingreso.
+     */
+    public function citaVigente(): HasOne
+    {
+        return $this->hasOne(Cita::class)->latestOfMany();
     }
 
     public function ordenesVaciado(): HasMany

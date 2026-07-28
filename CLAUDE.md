@@ -1,6 +1,6 @@
 # cargo_express Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-07-08
+Auto-generated from all feature plans. Last updated: 2026-07-27
 
 ## Active Technologies
 - PHP 8.2 + Laravel 12, Maatwebsite/Excel 3.1 (ya instalado), Spatie Laravel-Permission 6.25 (RBAC ya en uso), Barryvdh/Laravel-DomPDF 3.1 (export PDF), Laravel Queue driver `database` (ya configurado por defecto), Laravel Breeze (auth) (002-import-excel-inventory)
@@ -17,6 +17,8 @@ Auto-generated from all feature plans. Last updated: 2026-07-08
 - MySQL 8 / MariaDB (prod). Reutiliza tablas existentes (`ingresos`, `contenedores`, `referencias`, `photos`, `movimientos_inventario`). **Sin migraciones nuevas.** Archivos de imagen en `Storage::disk('public')` bajo `ingresos/{id}`. (007-edit-ingreso-bl-references)
 - PHP 8.2 + Laravel 12 + Spatie Laravel-Permission 6.25 (RBAC), Laravel Breeze (auth de sesión), Barryvdh DomPDF, Maatwebsite Excel — **sin dependencias nuevas** (008-prevent-duplicate-salidas)
 - MySQL 8 (dev) / MariaDB (prod). **1 tabla nueva** `idempotency_keys`. Sin cambios a tablas existentes. Driver de sesión/cache: `database`. (008-prevent-duplicate-salidas)
+- PHP 8.2 + Laravel 12, Spatie Laravel-Permission 6.25 (RBAC), Laravel Breeze (auth de sesión), Blade + Bootstrap 5.3. **Sin dependencias nuevas** (hosting compartido sin SSH; `composer install` no es viable en producción) (009-roles-citas-portero)
+- MySQL 8 (dev) / MariaDB (prod). **3 tablas nuevas**: `citas`, `porteria_registros`, `porteria_novedades`. Reutiliza `photos` (polimórfica, columna `categoria` ya existente). **Sin cambios de esquema en tablas existentes** (009-roles-citas-portero)
 
 - PHP 8.2+ con Laravel 11 + Laravel 11, Bootstrap 5.3, Laravel Breeze (auth), Spatie Laravel-Permission (RBAC), Maatwebsite Excel (exportación), DomPDF (exportación PDF), Laravel Notifications (WhatsApp/email) (001-cargo-traceability-system)
 
@@ -36,9 +38,9 @@ tests/
 PHP 8.2+ con Laravel 11: Follow standard conventions
 
 ## Recent Changes
+- 009-roles-citas-portero: Added PHP 8.2 + Laravel 12, Spatie Laravel-Permission 6.25 (RBAC), Laravel Breeze (auth de sesión), Blade + Bootstrap 5.3. **Sin dependencias nuevas** (hosting compartido sin SSH; `composer install` no es viable en producción)
 - 008-prevent-duplicate-salidas: Added PHP 8.2 + Laravel 12 + Spatie Laravel-Permission 6.25 (RBAC), Laravel Breeze (auth de sesión), Barryvdh DomPDF, Maatwebsite Excel — **sin dependencias nuevas**
 - 007-edit-ingreso-bl-references: Added PHP 8.2 + Laravel 12 + Spatie Laravel-Permission 6.25 (RBAC), Laravel Breeze (auth de sesión), Blade + Bootstrap 5.3. Sin nuevas dependencias.
-- 006-ajustes-ingreso-vaciado: Added PHP 8.2 + Laravel 12 + Spatie Laravel-Permission 6.25 (RBAC), Laravel Breeze, Barryvdh/Laravel-DomPDF 3.1, Maatwebsite/Excel 3.1. **Sin nuevas dependencias**.
 
 
 <!-- MANUAL ADDITIONS START -->

@@ -10,7 +10,13 @@ use Spatie\Permission\PermissionRegistrar;
 class RolesAndPermissionsSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Estado final de la matriz de roles y permisos, para instalaciones limpias.
+     *
+     * Es idempotente (firstOrCreate en roles y permisos): se puede correr sobre
+     * una base que ya tiene los roles creados por las migraciones sin fallar.
+     *
+     * En producción los cambios de permisos viajan en las migraciones idempotentes
+     * 2026_07_27_00000{4..9}, porque el hosting no tiene SSH para correr seeders.
      */
     public function run(): void
     {
@@ -26,6 +32,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'gate-in.crear',
             'ingreso.ver',
             'ingreso.crear',
+            'ingreso.eliminar',
             'salida.ver',
             'salida.crear',
             'referencias.ver',
@@ -41,6 +48,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'entregas.crear',
             'entregas.generar-tarja',
             'reportes.ver',
+            // Feature 009 — módulos Citas y Portero
+            'citas.ver',
+            'citas.crear',
+            'citas.editar',
+            'porteria.ver',
+            'porteria.registrar',
         ];
 
         foreach ($permissions as $permission) {
@@ -50,24 +63,52 @@ class RolesAndPermissionsSeeder extends Seeder
         // Reset cache after creating permissions
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Create roles and assign permissions (use firstOrCreate for roles too)
-        Role::create(['name' => 'cliente', 'guard_name' => 'web'])->givePermissionTo([
-            'referencias.ver',
+        // Cliente: solo consulta el almacenamiento de su propia mercancía.
+        Role::firstOrCreate(['name' => 'cliente', 'guard_name' => 'web'])->givePermissionTo([
             'inventario.ver',
-            'entregas.ver',
-            'entregas.crear',
-            'reportes.ver',
         ]);
 
-        // Portero: flujo nuevo Ingreso/Salida (reemplaza gate-in/gate-out, ocultos en config/modulos.php)
-        Role::create(['name' => 'portero'])->givePermissionTo([
+        // Portero: solo control en puerta. No registra ingresos ni salidas.
+        Role::firstOrCreate(['name' => 'portero', 'guard_name' => 'web'])->givePermissionTo([
+            'porteria.ver',
+            'porteria.registrar',
+        ]);
+
+        // Citas: agenda llegadas. Consulta ingresos solo para elegir el contenedor.
+        Role::firstOrCreate(['name' => 'citas', 'guard_name' => 'web'])->givePermissionTo([
+            'citas.ver',
+            'citas.crear',
+            'citas.editar',
+            'ingreso.ver',
+        ]);
+
+        // Operaciones: registro documental de ingreso y salida de mercancía.
+        // Puede eliminar ingresos (p. ej. duplicados por doble envío); el servicio
+        // bloquea el borrado si la mercancía ya se movió.
+        Role::firstOrCreate(['name' => 'operaciones', 'guard_name' => 'web'])->givePermissionTo([
             'ingreso.ver',
             'ingreso.crear',
+            'ingreso.eliminar',
             'salida.ver',
             'salida.crear',
         ]);
 
-        Role::create(['name' => 'operador'])->givePermissionTo([
+        // Supervisor: vaciado + ubicación física de la mercancía.
+        Role::firstOrCreate(['name' => 'supervisor', 'guard_name' => 'web'])->givePermissionTo([
+            'vaciado.ver',
+            'vaciado.programar',
+            'vaciado.registrar-novedad',
+            'inventario.ver',
+            'inventario.ubicar',
+            'reportes.ver',
+        ]);
+
+        // --- Roles retirados de circulación (config/roles.php) ---
+        // Se siguen creando para no romper instalaciones ni histórico: los
+        // usuarios ya asignados conservan sus permisos. Solo dejan de ofrecerse
+        // al crear o editar un usuario.
+
+        Role::firstOrCreate(['name' => 'operador', 'guard_name' => 'web'])->givePermissionTo([
             'gate-in.ver',
             'ingreso.ver',
             'ingreso.crear',
@@ -79,7 +120,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'inventario.ubicar',
         ]);
 
-        Role::create(['name' => 'coordinador'])->givePermissionTo([
+        Role::firstOrCreate(['name' => 'coordinador', 'guard_name' => 'web'])->givePermissionTo([
             'solicitudes.ver',
             'solicitudes.asignar',
             'gate-in.ver',
@@ -91,14 +132,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'reportes.ver',
         ]);
 
-        Role::create(['name' => 'supervisor'])->givePermissionTo([
-            'vaciado.ver',
-            'vaciado.programar',
-            'inventario.ver',
-            'reportes.ver',
-        ]);
-
-        Role::create(['name' => 'despachador'])->givePermissionTo([
+        Role::firstOrCreate(['name' => 'despachador', 'guard_name' => 'web'])->givePermissionTo([
             'entregas.ver',
             'entregas.crear',
             'entregas.generar-tarja',
@@ -108,8 +142,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'referencias.ver',
         ]);
 
-        Role::create(['name' => 'gerente'])->givePermissionTo($permissions);
+        Role::firstOrCreate(['name' => 'gerente', 'guard_name' => 'web'])->givePermissionTo($permissions);
 
-        Role::create(['name' => 'administrador'])->givePermissionTo($permissions);
+        Role::firstOrCreate(['name' => 'administrador', 'guard_name' => 'web'])->givePermissionTo($permissions);
     }
 }

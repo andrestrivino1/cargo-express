@@ -1,11 +1,15 @@
 @extends('layouts.app')
 
 @section('content')
+@php $esCliente = $esCliente ?? false; @endphp
+
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-archive me-2"></i>Almacenamiento e Inventario</h2>
+    <h2><i class="bi bi-archive me-2"></i>{{ $esCliente ? 'Mi Inventario' : 'Almacenamiento e Inventario' }}</h2>
+    @can('inventario.ubicar')
     <a href="{{ route('inventario.ubicar') }}" class="btn btn-primary">
         <i class="bi bi-geo-alt me-1"></i> Asignar Ubicación
     </a>
+    @endcan
 </div>
 
 <!-- Filtros -->
@@ -13,6 +17,8 @@
     <div class="card-body">
         <form method="GET" action="{{ route('inventario.index') }}">
             <div class="row g-3">
+                {{-- Un cliente no elige de qué cliente ver: el servicio fuerza el suyo. --}}
+                @unless($esCliente)
                 <div class="col-md-3">
                     <label for="cliente_id" class="form-label">Cliente</label>
                     <select name="cliente_id" id="cliente_id" class="form-select">
@@ -24,6 +30,7 @@
                         @endforeach
                     </select>
                 </div>
+                @endunless
                 <div class="col-md-2">
                     <label for="codigo" class="form-label">Código Referencia</label>
                     <input type="text" name="codigo" id="codigo" class="form-control"
@@ -120,7 +127,16 @@
             {{ $referencias->withQueryString()->links() }}
         </div>
         @else
-        <p class="text-muted mb-0">No se encontraron referencias en inventario.</p>
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox d-block fs-1 mb-2"></i>
+            @if ($esCliente)
+            <h5>Sin mercancía almacenada</h5>
+            <p class="mb-0">Todavía no tienes mercancía registrada en el almacén.</p>
+            @else
+            <h5>Sin resultados</h5>
+            <p class="mb-0">No se encontraron referencias en inventario.</p>
+            @endif
+        </div>
         @endif
     </div>
 </div>

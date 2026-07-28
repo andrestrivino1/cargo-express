@@ -14,6 +14,8 @@
 return [
     // Flujo ajustado (visibles)
     'ingreso' => true,
+    'citas' => true,     // Agenda la llegada física de un contenedor ya declarado en un ingreso
+    'porteria' => true,  // Control en puerta: valida la cita del día y captura 4 evidencias
     'vaciado' => true,
     'inventario' => true,
     'salida' => true,

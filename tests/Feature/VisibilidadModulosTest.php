@@ -46,4 +46,26 @@ class VisibilidadModulosTest extends TestCase
         config(['modulos.transferencias' => true]);
         $this->actingAs($admin)->get('/transferencias')->assertOk();
     }
+
+    public function test_ocultar_y_reactivar_el_modulo_citas(): void
+    {
+        $admin = $this->admin();
+
+        config(['modulos.citas' => false]);
+        $this->actingAs($admin)->get('/citas')->assertNotFound();
+
+        config(['modulos.citas' => true]);
+        $this->actingAs($admin)->get('/citas')->assertOk();
+    }
+
+    public function test_ocultar_y_reactivar_el_modulo_porteria(): void
+    {
+        $admin = $this->admin();
+
+        config(['modulos.porteria' => false]);
+        $this->actingAs($admin)->get('/porteria')->assertNotFound();
+
+        config(['modulos.porteria' => true]);
+        $this->actingAs($admin)->get('/porteria')->assertOk();
+    }
 }

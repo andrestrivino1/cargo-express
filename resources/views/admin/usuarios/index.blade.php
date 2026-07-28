@@ -43,14 +43,22 @@
                             <td>{{ $usuario->phone ?? '—' }}</td>
                             <td>
                                 @foreach($usuario->roles as $role)
-                                    <span class="badge bg-info text-dark">{{ ucfirst($role->name) }}</span>
+                                    @if (in_array($role->name, $rolesRetirados, true))
+                                        {{-- Rol retirado: conserva sus permisos, pero conviene reasignarlo --}}
+                                        <span class="badge bg-warning text-dark"
+                                              title="Rol retirado de circulación. El usuario conserva sus permisos actuales; reasígnalo a un rol vigente.">
+                                            <i class="bi bi-exclamation-triangle"></i> {{ ucfirst($role->name) }}
+                                        </span>
+                                    @else
+                                        <span class="badge bg-info text-dark">{{ ucfirst($role->name) }}</span>
+                                    @endif
                                 @endforeach
                             </td>
                             <td class="text-end">
                                 <a href="{{ route('admin.usuarios.edit', $usuario) }}" class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-pencil"></i> Editar
                                 </a>
-                                @unless($usuario->hasRole('admin'))
+                                @unless($usuario->hasRole('administrador'))
                                     <form action="{{ route('admin.usuarios.destroy', $usuario) }}" method="POST" class="d-inline"
                                           onsubmit="return confirm('¿Está seguro de eliminar este usuario?')">
                                         @csrf

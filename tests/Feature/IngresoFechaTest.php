@@ -28,6 +28,7 @@ class IngresoFechaTest extends TestCase
     private function payload(int $clienteId, string $fecha): array
     {
         return [
+            'idempotency_key' => (string) \Illuminate\Support\Str::uuid(),
             'bl' => 'BL-FECHA',
             'cliente_id' => $clienteId,
             'fecha_ingreso' => $fecha,

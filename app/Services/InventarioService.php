@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exports\InventarioExport;
 use App\Models\Referencia;
 use App\Models\UbicacionPatio;
+use App\Models\User;
 use App\Notifications\UbicacionAsignadaNotification;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -21,8 +22,31 @@ class InventarioService
         }
     }
 
-    public function consultarInventario(array $filtros): LengthAwarePaginator
+    /**
+     * Un usuario con rol `cliente` solo puede ver su propia mercancía: se fuerza
+     * el filtro a su id, descartando cualquier `cliente_id` que venga del
+     * request.
+     *
+     * Punto ÚNICO de aplicación del alcance: lo usan la consulta, la exportación
+     * a Excel y la exportación a PDF. Si se aplicara en el controlador habría que
+     * repetirlo tres veces, con el riesgo de olvidar una.
+     *
+     * @param  array<string, mixed>  $filtros
+     * @return array<string, mixed>
+     */
+    public function filtrosConAlcance(array $filtros, ?User $usuario): array
     {
+        if ($usuario?->hasRole('cliente')) {
+            $filtros['cliente_id'] = $usuario->id;
+        }
+
+        return $filtros;
+    }
+
+    public function consultarInventario(array $filtros, ?User $usuario = null): LengthAwarePaginator
+    {
+        $filtros = $this->filtrosConAlcance($filtros, $usuario);
+
         $query = Referencia::query()
             ->with(['contenedor', 'cliente', 'ubicacionPatio']);
 
@@ -62,13 +86,15 @@ class InventarioService
         return $referencias;
     }
 
-    public function exportarInventario(array $filtros): InventarioExport
+    public function exportarInventario(array $filtros, ?User $usuario = null): InventarioExport
     {
-        return new InventarioExport($filtros);
+        return new InventarioExport($this->filtrosConAlcance($filtros, $usuario));
     }
 
-    public function exportarInventarioPdf(array $filtros)
+    public function exportarInventarioPdf(array $filtros, ?User $usuario = null)
     {
+        $filtros = $this->filtrosConAlcance($filtros, $usuario);
+
         $query = Referencia::query()
             ->with(['contenedor', 'cliente', 'ubicacionPatio']);
 

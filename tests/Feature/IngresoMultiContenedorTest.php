@@ -30,6 +30,8 @@ class IngresoMultiContenedorTest extends TestCase
     private function docs(): array
     {
         return [
+            // Token del intento: obligatorio desde la barrera anti-duplicados.
+            'idempotency_key' => (string) \Illuminate\Support\Str::uuid(),
             'documento_bl' => UploadedFile::fake()->create('bl.pdf', 50, 'application/pdf'),
             'documento_dim' => UploadedFile::fake()->create('dim.pdf', 50, 'application/pdf'),
             'documento_lista_empaque' => UploadedFile::fake()->create('lista.pdf', 50, 'application/pdf'),

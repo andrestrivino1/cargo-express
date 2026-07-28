@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AlmacenamientoController;
 use App\Http\Controllers\Auth\PrimerLoginController;
+use App\Http\Controllers\CitaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EntregaController;
 use App\Http\Controllers\GateInController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\ManualController;
 use App\Http\Controllers\NovedadController;
 use App\Http\Controllers\OrdenServicioController;
 use App\Http\Controllers\PendientesCompletarController;
+use App\Http\Controllers\PorteriaController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReferenciaController;
@@ -91,7 +93,34 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
         Route::post('/', [IngresoMercanciaController::class, 'store'])->name('store')->middleware('permission:ingreso.crear');
         Route::get('/{ingreso}/editar', [IngresoMercanciaController::class, 'edit'])->name('editar')->middleware('role:administrador|coordinador');
         Route::put('/{ingreso}', [IngresoMercanciaController::class, 'update'])->name('update')->middleware('role:administrador|coordinador');
+        // Eliminar arrastra contenedores, referencias y movimientos de entrada.
+        // Va por permiso (no por rol) para poder concederlo o quitarlo sin tocar
+        // código; el servicio bloquea el borrado si la mercancía ya se movió.
+        Route::delete('/{ingreso}', [IngresoMercanciaController::class, 'destroy'])->name('destroy')->middleware('permission:ingreso.eliminar');
         Route::get('/{ingreso}', [IngresoMercanciaController::class, 'show'])->name('show');
+    });
+
+    // Citas: agenda la llegada física de un contenedor ya declarado en un ingreso.
+    // Cadena operativa: Ingreso -> Cita -> Portería.
+    Route::prefix('citas')->name('citas.')->middleware(['modulo:citas', 'permission:citas.ver'])->group(function () {
+        Route::get('/', [CitaController::class, 'index'])->name('index');
+        Route::get('/crear', [CitaController::class, 'create'])->name('create')->middleware('permission:citas.crear');
+        Route::post('/', [CitaController::class, 'store'])->name('store')->middleware('permission:citas.crear');
+        Route::get('/ingreso/{ingreso}/contenedores', [CitaController::class, 'contenedoresDeIngreso'])->name('contenedores')->middleware('permission:citas.crear');
+        Route::get('/{cita}/editar', [CitaController::class, 'edit'])->name('editar')->middleware('permission:citas.editar');
+        Route::put('/{cita}', [CitaController::class, 'update'])->name('update')->middleware('permission:citas.editar');
+        Route::post('/{cita}/cancelar', [CitaController::class, 'cancelar'])->name('cancelar')->middleware('permission:citas.editar');
+        Route::get('/{cita}', [CitaController::class, 'show'])->name('show');
+    });
+
+    // Portería: valida que el vehículo que llegó tenga cita para HOY y captura
+    // las cuatro evidencias fotográficas obligatorias.
+    Route::prefix('porteria')->name('porteria.')->middleware(['modulo:porteria', 'permission:porteria.ver'])->group(function () {
+        Route::get('/', [PorteriaController::class, 'index'])->name('index');
+        Route::get('/novedad/crear', [PorteriaController::class, 'crearNovedad'])->name('novedad.create')->middleware('permission:porteria.registrar');
+        Route::post('/novedad', [PorteriaController::class, 'guardarNovedad'])->name('novedad.store')->middleware('permission:porteria.registrar');
+        Route::get('/{cita}', [PorteriaController::class, 'show'])->name('show');
+        Route::post('/{cita}/llegada', [PorteriaController::class, 'registrarLlegada'])->name('llegada')->middleware('permission:porteria.registrar');
     });
 
     // Salida de mercancía (formulario consolidado + Orden de Salida ODC — reemplaza Entregas/Tarja)

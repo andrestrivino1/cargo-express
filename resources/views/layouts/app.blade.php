@@ -206,6 +206,7 @@
             </ul>
 
             {{-- Secciones exclusivas para Cliente --}}
+            {{-- El cliente solo ve el almacenamiento de su propia mercancía (FR-034/FR-036). --}}
             @role('cliente')
             <div class="sidebar-heading">Mi Cuenta</div>
             <ul class="nav flex-column">
@@ -214,104 +215,108 @@
                         <i class="bi bi-archive"></i> Mi Inventario
                     </a>
                 </li>
-                @if (config('modulos.entregas'))
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('entregas.create') ? 'active' : '' }}" href="{{ route('entregas.create') }}">
-                        <i class="bi bi-plus-circle"></i> Orden de Cargue
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('entregas.index') || request()->routeIs('entregas.show') ? 'active' : '' }}" href="{{ route('entregas.index') }}">
-                        <i class="bi bi-truck"></i> Mis Entregas
-                    </a>
-                </li>
-                @endif
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('trazabilidad.*') ? 'active' : '' }}" href="{{ route('trazabilidad.index') }}">
-                        <i class="bi bi-search"></i> Trazabilidad
-                    </a>
-                </li>
             </ul>
             @endrole
 
             {{-- Secciones para personal operativo (NO cliente) --}}
+            {{--
+                Cada ítem se condiciona a DOS cosas: que el módulo esté visible
+                (config/modulos.php) y que el usuario tenga el permiso que la ruta
+                exige. Sin lo segundo, un rol acotado vería enlaces que solo llevan
+                a un 403 (FR-045).
+            --}}
             @unlessrole('cliente')
             <!-- Operaciones -->
             <div class="sidebar-heading">Operaciones</div>
             <ul class="nav flex-column">
-                @if (config('modulos.solicitudes'))
+                @if (config('modulos.solicitudes')) @can('solicitudes.ver')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('solicitudes.*') ? 'active' : '' }}" href="{{ route('solicitudes.index') }}">
                         <i class="bi bi-file-earmark-text"></i> Solicitudes
                     </a>
                 </li>
-                @endif
-                @if (config('modulos.ingreso'))
+                @endcan @endif
+                @if (config('modulos.ingreso')) @can('ingreso.ver')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('ingreso.*') ? 'active' : '' }}" href="{{ route('ingreso.index') }}">
                         <i class="bi bi-box-arrow-in-right"></i> Ingreso
                     </a>
                 </li>
-                @endif
-                @if (config('modulos.gate_in'))
+                @endcan @endif
+                @if (config('modulos.citas')) @can('citas.ver')
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('citas.*') ? 'active' : '' }}" href="{{ route('citas.index') }}">
+                        <i class="bi bi-calendar-check"></i> Citas
+                    </a>
+                </li>
+                @endcan @endif
+                @if (config('modulos.porteria')) @can('porteria.ver')
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('porteria.*') ? 'active' : '' }}" href="{{ route('porteria.index') }}">
+                        <i class="bi bi-shield-check"></i> Portero
+                    </a>
+                </li>
+                @endcan @endif
+                @if (config('modulos.gate_in')) @can('gate-in.ver')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('gate-in.*') ? 'active' : '' }}" href="{{ route('gate-in.index') }}">
                         <i class="bi bi-box-arrow-in-right"></i> Ingreso (Gate-In)
                     </a>
                 </li>
-                @endif
-                @if (config('modulos.vaciado'))
+                @endcan @endif
+                @if (config('modulos.vaciado')) @can('vaciado.ver')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('vaciado.*') ? 'active' : '' }}" href="{{ route('vaciado.index') }}">
                         <i class="bi bi-box-seam"></i> Vaciado
                     </a>
                 </li>
-                @endif
-                @if (config('modulos.inventario'))
+                @endcan @endif
+                @if (config('modulos.inventario')) @can('inventario.ver')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('inventario.*') ? 'active' : '' }}" href="{{ route('inventario.index') }}">
                         <i class="bi bi-archive"></i> Almacenamiento
                     </a>
                 </li>
-                @endif
-                @if (config('modulos.salida'))
+                @endcan @endif
+                @if (config('modulos.salida')) @can('salida.ver')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('salida.*') ? 'active' : '' }}" href="{{ route('salida.index') }}">
                         <i class="bi bi-box-arrow-right"></i> Salida
                     </a>
                 </li>
-                @endif
-                @if (config('modulos.gate_out'))
+                @endcan @endif
+                @if (config('modulos.gate_out')) @can('gate-out.ver')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('gate-out.*') ? 'active' : '' }}" href="{{ route('gate-out.index') }}">
                         <i class="bi bi-box-arrow-right"></i> Salida (Gate-Out)
                     </a>
                 </li>
-                @endif
-                @if (config('modulos.productos'))
+                @endcan @endif
+                @if (config('modulos.productos')) @can('inventario.ver')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('productos.*') ? 'active' : '' }}" href="{{ route('productos.index') }}">
                         <i class="bi bi-box"></i> Productos
                     </a>
                 </li>
-                @endif
-                @if (config('modulos.transferencias'))
+                @endcan @endif
+                @if (config('modulos.transferencias')) @can('inventario.ubicar')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('transferencias.*') ? 'active' : '' }}" href="{{ route('transferencias.index') }}">
                         <i class="bi bi-arrow-left-right"></i> Transferencias
                     </a>
                 </li>
-                @endif
-                @if (config('modulos.entregas'))
+                @endcan @endif
+                @if (config('modulos.entregas')) @can('entregas.ver')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('entregas.*') ? 'active' : '' }}" href="{{ route('entregas.index') }}">
                         <i class="bi bi-truck"></i> Entregas
                     </a>
                 </li>
-                @endif
+                @endcan @endif
             </ul>
 
             <!-- Consultas -->
+            @can('reportes.ver')
             <div class="sidebar-heading">Consultas</div>
             <ul class="nav flex-column">
                 <li class="nav-item">
@@ -321,8 +326,7 @@
                 </li>
             </ul>
 
-            <!-- Reportes (supervisor, gerente, administrador) -->
-            @role('supervisor|gerente|administrador')
+            <!-- Reportes -->
             <div class="sidebar-heading">Reportes</div>
             <ul class="nav flex-column">
                 <li class="nav-item">
@@ -331,7 +335,7 @@
                     </a>
                 </li>
             </ul>
-            @endrole
+            @endcan
 
             <!-- Administración (solo administrador) -->
             @role('administrador')
@@ -357,8 +361,9 @@
             </ul>
             @endrole
 
+            {{-- El portero sale de esta lista: su alcance es solo el módulo Portero. --}}
             @if (config('modulos.importaciones'))
-            @hasanyrole('administrador|coordinador|despachador|portero|operador|supervisor')
+            @hasanyrole('administrador|coordinador|despachador|operaciones|operador|supervisor')
             <div class="sidebar-heading">Importación histórica</div>
             <ul class="nav flex-column">
                 <li class="nav-item">
