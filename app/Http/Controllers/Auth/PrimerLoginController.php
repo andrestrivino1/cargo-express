@@ -27,7 +27,7 @@ class PrimerLoginController extends Controller
     {
         $request->validate([
             'password_actual' => ['required'],
-            'password' => ['required', 'confirmed', Password::defaults()->mixedCase()->numbers()->symbols()],
+            'password' => ['required', 'confirmed', Password::defaults()->mixedCase()->numbers()],
         ]);
 
         $user = $request->user();

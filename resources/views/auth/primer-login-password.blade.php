@@ -1,4 +1,4 @@
-@extends('layouts.guest')
+@extends('layouts.app')
 
 @section('content')
 <div class="container py-5" style="max-width:480px">
@@ -20,7 +20,7 @@
             <label class="form-label">Nueva contraseña</label>
             <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" required>
             @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            <small class="text-muted">Mínimo 8 caracteres, mayúsculas, minúsculas, número y símbolo.</small>
+            <small class="text-muted">Mínimo 8 caracteres, mayúsculas, minúsculas y número.</small>
         </div>
         <div class="mb-3">
             <label class="form-label">Confirma la nueva contraseña</label>
