@@ -31,12 +31,14 @@ class Transferencia extends Model
 
     public function referenciaOrigen(): BelongsTo
     {
-        return $this->belongsTo(Referencia::class, 'referencia_origen_id');
+        // withTrashed: la constancia de una transferencia pasada no puede perder
+        // su origen porque la referencia se haya retirado después (feature 010).
+        return $this->belongsTo(Referencia::class, 'referencia_origen_id')->withTrashed();
     }
 
     public function referenciaDestino(): BelongsTo
     {
-        return $this->belongsTo(Referencia::class, 'referencia_destino_id');
+        return $this->belongsTo(Referencia::class, 'referencia_destino_id')->withTrashed(); // feature 010
     }
 
     public function ubicacionOrigen(): BelongsTo

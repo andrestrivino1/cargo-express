@@ -70,7 +70,7 @@ class TransferenciaController extends Controller
     public function storeEntreModulos(Request $request)
     {
         $validated = $request->validate([
-            'referencia_id' => 'required|exists:referencias,id',
+            'referencia_id' => 'required|'.Referencia::REGLA_EXISTE_VIGENTE,
             'ubicacion_destino_id' => 'required|exists:ubicaciones_patio,id',
             'cantidad' => 'required|integer|min:1',
         ]);
@@ -99,7 +99,7 @@ class TransferenciaController extends Controller
     public function storeEntreClientes(Request $request)
     {
         $validated = $request->validate([
-            'referencia_id' => 'required|exists:referencias,id',
+            'referencia_id' => 'required|'.Referencia::REGLA_EXISTE_VIGENTE,
             'cliente_destino_id' => 'required|exists:users,id',
             'ubicacion_destino_id' => 'required|exists:ubicaciones_patio,id',
             'cantidad' => 'required|integer|min:1',

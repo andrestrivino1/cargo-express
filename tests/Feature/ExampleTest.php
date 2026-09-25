@@ -2,18 +2,19 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
     /**
-     * A basic test example.
+     * La raíz ya no sirve una página propia: desde la feature 010 redirige al
+     * acceso de la aplicación. El recorrido completo (sesión activa, primer
+     * login, registro cerrado) se verifica en EntradaSitioTest.
      */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_the_application_root_redirects_to_login(): void
     {
         $response = $this->get('/');
 
-        $response->assertStatus(200);
+        $response->assertRedirect('/login');
     }
 }

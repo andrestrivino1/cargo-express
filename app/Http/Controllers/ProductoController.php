@@ -70,6 +70,12 @@ class ProductoController extends Controller
             ->with('success', 'Producto actualizado exitosamente.');
     }
 
+    /**
+     * Desde la feature 010, `referencias()` no cuenta las retiradas del
+     * inventario: un producto cuya única mercancía fue dada de baja sí se puede
+     * eliminar del catálogo. Es el comportamiento buscado —no queda mercancía
+     * vigente que lo use— y no un efecto colateral del soft delete.
+     */
     public function destroy(Producto $producto): RedirectResponse
     {
         if ($producto->referencias()->exists()) {

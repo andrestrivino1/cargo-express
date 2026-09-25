@@ -36,13 +36,10 @@ use Illuminate\Support\Facades\Storage;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', function () {
-    if (auth()->check()) {
-        return redirect()->route('dashboard');
-    }
-
-    return view('welcome');
-});
+// La raíz siempre apunta al acceso de la aplicación. A quien ya tiene sesión no
+// se le muestra el formulario: el middleware `guest` de la ruta `login` lo pasa
+// a /dashboard, y allí `primer_login` lo intercepta si debe cambiar credenciales.
+Route::redirect('/', '/login');
 
 // Primer login forzado (no aplica el middleware primer_login a sí mismo)
 Route::middleware('auth')->prefix('primer-login')->name('primer-login.')->group(function () {
@@ -192,6 +189,10 @@ Route::middleware(['auth', 'primer_login'])->group(function () {
         Route::post('/ubicar', [AlmacenamientoController::class, 'asignarUbicacion'])->name('asignar-ubicacion')->middleware('permission:inventario.ubicar');
         Route::get('/{referencia}/editar', [AlmacenamientoController::class, 'edit'])->name('editar')->middleware('role:administrador|coordinador');
         Route::put('/{referencia}', [AlmacenamientoController::class, 'update'])->name('update')->middleware('role:administrador|coordinador');
+        // Retirar saca la referencia del inventario vigente conservando su
+        // historial. Va por permiso (no por rol) para poder concederlo o quitarlo
+        // sin tocar código.
+        Route::delete('/{referencia}', [AlmacenamientoController::class, 'retirar'])->name('retirar')->middleware('permission:inventario.retirar');
     });
 
     // Gate Out

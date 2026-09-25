@@ -10,9 +10,45 @@ use App\Notifications\UbicacionAsignadaNotification;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class InventarioService
 {
+    public function __construct(
+        private readonly MovimientoInventarioService $movimientos,
+        private readonly AuditoriaService $auditoria,
+    ) {}
+
+    /**
+     * Retira una referencia del inventario vigente (feature 010 / US2).
+     *
+     * No es un borrado: la fila permanece (soft delete) para que los movimientos,
+     * órdenes de salida, transferencias y vaciados en que participó sigan
+     * teniendo respaldo. Lo que sí se hace es llevar el disponible a cero con un
+     * movimiento de baja, para que las existencias del cliente sigan cuadrando
+     * con la suma de sus movimientos.
+     */
+    public function retirar(Referencia $referencia, User $usuario): void
+    {
+        DB::transaction(function () use ($referencia, $usuario) {
+            $disponible = $referencia->cantidad_actual;
+
+            $referencia->retirado_por = $usuario->getKey();
+            $referencia->cantidad_actual = 0;
+
+            // La auditoría se registra con el modelo aún "sucio": así lo espera
+            // AuditoriaService para comparar contra los valores originales.
+            $this->auditoria->registrarCambios($referencia, $usuario);
+            $referencia->save();
+
+            if ($disponible > 0) {
+                $this->movimientos->registrarBaja($referencia, $disponible, $usuario, 'Retiro del inventario');
+            }
+
+            $referencia->delete(); // soft delete: sale del inventario, no del historial
+        });
+    }
+
     public function asignarUbicacion(Referencia $ref, UbicacionPatio $ubicacion): void
     {
         $ref->update(['ubicacion_patio_id' => $ubicacion->id]);
@@ -48,7 +84,14 @@ class InventarioService
         $filtros = $this->filtrosConAlcance($filtros, $usuario);
 
         $query = Referencia::query()
-            ->with(['contenedor', 'cliente', 'ubicacionPatio']);
+            ->with(['contenedor', 'cliente', 'ubicacionPatio', 'retiradoPor']);
+
+        // Las retiradas solo se ven pidiéndolas explícitamente. El controlador ya
+        // descartó el filtro si el usuario no tiene permiso para retirar, así que
+        // aquí llega decidido.
+        if (!empty($filtros['incluir_retiradas'])) {
+            $query->withTrashed();
+        }
 
         if (!empty($filtros['cliente_id'])) {
             $query->where('cliente_id', $filtros['cliente_id']);

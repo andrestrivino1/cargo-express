@@ -155,7 +155,11 @@ class PendientesCompletarController extends Controller
                     ->where('pendienteable_type', Contenedor::class)
                     ->where('pendienteable_id', $dup->id)
                     ->delete();
-                \App\Models\Referencia::where('contenedor_id', $dup->id)->delete();
+                // forceDelete: `Referencia` usa soft deletes desde la feature 010
+                // para el retiro del inventario. Consolidar un duplicado es
+                // borrado real; un soft delete dejaría la referencia colgando de
+                // un contenedor que ya no existe.
+                \App\Models\Referencia::where('contenedor_id', $dup->id)->forceDelete();
                 $dup->delete();
 
                 // Sus padres sintéticos (Solicitud, OrdenServicio) — solo si quedan huérfanos

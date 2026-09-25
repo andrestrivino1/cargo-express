@@ -16,7 +16,7 @@ class StoreTarjaRequest extends FormRequest
     {
         return [
             'detalles' => ['required', 'array', 'min:1'],
-            'detalles.*.referencia_id' => ['required', 'exists:referencias,id'],
+            'detalles.*.referencia_id' => ['required', Referencia::REGLA_EXISTE_VIGENTE],
             'detalles.*.cantidad_entregada' => ['required', 'integer', 'min:1'],
             'detalles.*.ubicacion_origen_id' => ['required', 'exists:ubicaciones_patio,id'],
         ];

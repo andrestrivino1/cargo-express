@@ -21,7 +21,7 @@ class TarjaDetalle extends Model
 
     public function referencia(): BelongsTo
     {
-        return $this->belongsTo(Referencia::class);
+        return $this->belongsTo(Referencia::class)->withTrashed(); // feature 010: el historial sobrevive al retiro
     }
 
     public function ubicacionOrigen(): BelongsTo

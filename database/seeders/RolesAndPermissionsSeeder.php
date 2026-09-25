@@ -42,6 +42,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'vaciado.registrar-novedad',
             'inventario.ver',
             'inventario.ubicar',
+            'inventario.retirar', // Feature 010 — retiro de referencias del inventario
             'gate-out.ver',
             'gate-out.crear',
             'entregas.ver',
@@ -129,6 +130,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'salida.ver',
             'salida.crear',
             'inventario.ver',
+            'inventario.retirar', // Feature 010 — mismo alcance que ya tenía para editar referencias
             'reportes.ver',
         ]);
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Referencia;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreSalidaMercanciaRequest extends FormRequest
@@ -29,7 +30,7 @@ class StoreSalidaMercanciaRequest extends FormRequest
             'observaciones' => ['nullable', 'string'],
 
             'detalles' => ['required', 'array', 'min:1'],
-            'detalles.*.referencia_id' => ['required', 'exists:referencias,id'],
+            'detalles.*.referencia_id' => ['required', Referencia::REGLA_EXISTE_VIGENTE],
             'detalles.*.cantidad' => ['required', 'integer', 'min:1'],
 
             'foto_mercancia' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],

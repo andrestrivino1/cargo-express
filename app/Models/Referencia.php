@@ -6,10 +6,32 @@ use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Referencia extends Model
 {
-    use Auditable;
+    /**
+     * SoftDeletes implementa el RETIRO del inventario (feature 010 / US2): la
+     * referencia sale de toda consulta vigente, pero su fila permanece para que
+     * los movimientos, órdenes de salida, transferencias y vaciados en que
+     * participó sigan teniendo respaldo.
+     *
+     * Ojo: a partir de aquí `delete()` sobre una referencia NO borra. Donde se
+     * quiera borrado real —eliminar un ingreso completo, consolidar duplicados
+     * en Pendientes— hay que usar `forceDelete()` explícitamente.
+     */
+    use Auditable, SoftDeletes;
+
+    /**
+     * Regla de validación para un `referencia_id` que llega del usuario.
+     *
+     * Un `exists:referencias,id` a secas acepta referencias ya retiradas —la fila
+     * sigue ahí— y la operación revienta después con un 404. Esta regla las
+     * descarta en la validación, que es donde el usuario puede entender el
+     * rechazo. Se define una sola vez porque la usan seis puntos de entrada:
+     * ubicación, transferencias (2), novedades, salida y tarja.
+     */
+    public const REGLA_EXISTE_VIGENTE = 'exists:referencias,id,deleted_at,NULL';
 
     protected $fillable = [
         'contenedor_id',
@@ -24,6 +46,7 @@ class Referencia extends Model
         'ubicacion_patio_id',
         'fecha_ingreso',
         'fecha_salida',
+        'retirado_por',
     ];
 
     protected function casts(): array
@@ -48,6 +71,12 @@ class Referencia extends Model
     public function cliente(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cliente_id');
+    }
+
+    /** Quién retiró la referencia del inventario vigente (feature 010). */
+    public function retiradoPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'retirado_por');
     }
 
     public function ubicacionPatio(): BelongsTo

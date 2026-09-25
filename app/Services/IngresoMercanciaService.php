@@ -25,6 +25,7 @@ class IngresoMercanciaService
     public function __construct(
         private readonly MovimientoInventarioService $movimientos,
         private readonly IdempotencyService $idempotencia,
+        private readonly AuditoriaService $auditoria,
     ) {}
 
     /**
@@ -121,6 +122,8 @@ class IngresoMercanciaService
                 $ingreso->guardarFotos($fotos, "ingresos/{$ingreso->id}");
             }
 
+            $this->aplicarCorrecciones($ingreso, $data['referencias'] ?? [], $usuario);
+
             if (! empty($nuevaReferencia['codigo'])) {
                 $contenedor = $ingreso->contenedores()->findOrFail($nuevaReferencia['contenedor_id']);
                 $this->crearReferencia($contenedor, $nuevaReferencia, $usuario, $ingreso);
@@ -128,6 +131,60 @@ class IngresoMercanciaService
 
             return $ingreso;
         });
+    }
+
+    /**
+     * Corrige la cantidad declarada de las referencias del ingreso (feature 010).
+     *
+     * Lo declarado y lo disponible se mueven juntos: lo que ya se consumió —haya
+     * salido por una ODC, una transferencia o una novedad de vaciado— se conserva,
+     * porque la diferencia entre `cantidad_inicial` y `cantidad_actual` ES ese
+     * consumo. Corre dentro de la transacción de {@see actualizar()}: si una
+     * cantidad falla, no queda ninguna aplicada.
+     *
+     * La validación de pertenencia y del mínimo vive en UpdateIngresoRequest; aquí
+     * se vuelve a filtrar por contenedor del ingreso como red de seguridad para
+     * cualquier otro llamador.
+     *
+     * @param  array<int|string, int|string>  $cantidades  [referencia_id => nueva cantidad declarada]
+     */
+    private function aplicarCorrecciones(Ingreso $ingreso, array $cantidades, User $usuario): void
+    {
+        if ($cantidades === []) {
+            return;
+        }
+
+        $referencias = Referencia::whereIn('contenedor_id', $ingreso->contenedores()->select('id'))
+            ->whereIn('id', array_keys($cantidades))
+            ->get();
+
+        foreach ($referencias as $referencia) {
+            $nueva = (int) $cantidades[$referencia->id];
+            $delta = $nueva - $referencia->cantidad_inicial;
+
+            if ($delta === 0) {
+                continue;
+            }
+
+            $anterior = $referencia->cantidad_inicial;
+            $consumido = $referencia->cantidad_inicial - $referencia->cantidad_actual;
+
+            $referencia->cantidad_inicial = $nueva;
+            $referencia->cantidad_actual = $nueva - $consumido;
+
+            // La auditoría se registra con el modelo aún "sucio": así lo espera
+            // AuditoriaService para poder comparar contra los valores originales.
+            $this->auditoria->registrarCambios($referencia, $usuario);
+            $referencia->save();
+
+            $this->movimientos->registrarAjuste(
+                $referencia,
+                $delta,
+                $usuario,
+                $ingreso,
+                "Corrección de cantidad declarada: {$anterior} → {$nueva}"
+            );
+        }
     }
 
     /**
@@ -301,7 +358,12 @@ class IngresoMercanciaService
             }
 
             MovimientoInventario::whereIn('referencia_id', $referenciaIds)->delete();
-            Referencia::whereIn('id', $referenciaIds)->delete();
+
+            // forceDelete y no delete: desde la feature 010 `Referencia` usa soft
+            // deletes para el RETIRO del inventario. Eliminar un ingreso es otra
+            // cosa —borrado real— y un soft delete aquí dejaría filas apuntando a
+            // contenedores ya borrados, resucitables con withTrashed().
+            Referencia::whereIn('id', $referenciaIds)->forceDelete();
 
             // Las citas apuntan a ingreso y contenedor con cascadeOnDelete; se
             // borran explícitamente para no depender del orden de las FK.

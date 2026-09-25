@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Referencia;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreNovedadRequest extends FormRequest
@@ -16,7 +17,7 @@ class StoreNovedadRequest extends FormRequest
         return [
             'tipo' => ['required', 'in:averia,faltante,dano_visible'],
             'descripcion' => ['required', 'string'],
-            'referencia_id' => ['nullable', 'exists:referencias,id'],
+            'referencia_id' => ['nullable', Referencia::REGLA_EXISTE_VIGENTE],
             'cantidad_afectada' => ['nullable', 'integer', 'min:1'],
             'fotos' => ['nullable', 'array'],
             'fotos.*' => ['image', 'mimes:jpg,png,webp', 'max:5120'],

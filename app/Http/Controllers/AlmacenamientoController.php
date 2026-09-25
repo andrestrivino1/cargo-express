@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\RetirarReferenciaRequest;
 use App\Http\Requests\UpdateReferenciaRequest;
 use App\Models\Referencia;
 use App\Models\UbicacionPatio;
@@ -23,6 +24,11 @@ class AlmacenamientoController extends Controller
     {
         $filtros = $request->only(['cliente_id', 'codigo', 'modulo', 'fecha_desde', 'fecha_hasta']);
 
+        // Ver mercancía retirada se condiciona al permiso, no al parámetro: quien
+        // no puede retirar tampoco ve las bajas, aunque fuerce la URL.
+        $puedeRetirar = $request->user()?->can('inventario.retirar') ?? false;
+        $filtros['incluir_retiradas'] = $puedeRetirar && $request->boolean('incluir_retiradas');
+
         // El usuario va al servicio: si es un cliente, allí se fuerza el filtro a
         // su propia mercancía sin importar el cliente_id que llegue en la URL.
         $referencias = $this->inventarioService->consultarInventario($filtros, $request->user());
@@ -38,7 +44,7 @@ class AlmacenamientoController extends Controller
             ->orderBy('modulo')
             ->pluck('modulo');
 
-        return view('almacenamiento.index', compact('referencias', 'clientes', 'modulos', 'filtros', 'esCliente'));
+        return view('almacenamiento.index', compact('referencias', 'clientes', 'modulos', 'filtros', 'esCliente', 'puedeRetirar'));
     }
 
     public function exportExcel(Request $request)
@@ -75,6 +81,22 @@ class AlmacenamientoController extends Controller
             ->with('success', "Referencia {$referencia->codigo} actualizada correctamente.");
     }
 
+    /**
+     * Retira una referencia del inventario vigente (feature 010 / US2).
+     *
+     * No borra: la referencia sale de los listados, exportables y operaciones
+     * nuevas, pero su historial queda intacto y consultable.
+     */
+    public function retirar(RetirarReferenciaRequest $request, Referencia $referencia): RedirectResponse
+    {
+        $codigo = $referencia->codigo;
+
+        $this->inventarioService->retirar($referencia, $request->user());
+
+        return redirect()->route('inventario.index')
+            ->with('success', "Referencia {$codigo} retirada del inventario. Su historial se conserva.");
+    }
+
     public function ubicar()
     {
         $referencias = Referencia::whereNull('ubicacion_patio_id')
@@ -93,7 +115,7 @@ class AlmacenamientoController extends Controller
     public function asignarUbicacion(Request $request)
     {
         $validated = $request->validate([
-            'referencia_id' => 'required|exists:referencias,id',
+            'referencia_id' => 'required|'.Referencia::REGLA_EXISTE_VIGENTE,
             'ubicacion_patio_id' => 'required|exists:ubicaciones_patio,id',
         ]);
 
