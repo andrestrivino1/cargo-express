@@ -259,6 +259,34 @@ class InventarioRetiroTest extends TestCase
         $this->assertArrayHasKey('retirado_por', $auditoria->cambios);
     }
 
+    // ----- La acción es visible en el listado -----
+
+    public function test_el_listado_muestra_el_boton_de_retiro_a_quien_puede_retirar(): void
+    {
+        $admin = $this->admin();
+        $referencia = $this->referenciaDe($this->ingresoCon($this->cliente()));
+
+        $response = $this->actingAs($admin)->get(route('inventario.index'));
+
+        $response->assertOk();
+        $response->assertSee($referencia->codigo);
+        $response->assertSee('modalRetiro', false);
+        $response->assertSee('Retirar del inventario', false);
+    }
+
+    public function test_el_listado_no_muestra_el_boton_a_quien_no_puede_retirar(): void
+    {
+        $this->seed(RolesAndPermissionsSeeder::class);
+        $supervisor = User::factory()->create();
+        $supervisor->assignRole('supervisor');
+
+        $this->referenciaDe($this->ingresoCon($this->cliente()));
+
+        $this->actingAs($supervisor)->get(route('inventario.index'))
+            ->assertOk()
+            ->assertDontSee('modalRetiro', false);
+    }
+
     // ----- Filtro de retiradas -----
 
     public function test_el_filtro_incluir_retiradas_las_muestra_solo_a_quien_puede_retirar(): void
