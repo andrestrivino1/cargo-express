@@ -15,6 +15,9 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    // Se muestra en "Acerca del sistema"; mantenerla al día con el manual de usuario.
+    'version' => env('APP_VERSION', '1.0'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

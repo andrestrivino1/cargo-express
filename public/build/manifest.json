@@ -8,13 +8,17 @@
     "src": "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-BqmQ52fb.css",
+    "file": "assets/app-B3d-cJyW.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
     "names": [
       "app.css"
     ]
+  },
+  "resources/fonts/chakra-petch-latin-700-normal.woff2": {
+    "file": "assets/chakra-petch-latin-700-normal-CnDBPjkL.woff2",
+    "src": "resources/fonts/chakra-petch-latin-700-normal.woff2"
   },
   "resources/js/app.js": {
     "file": "assets/app-DcGA0rtG.js",

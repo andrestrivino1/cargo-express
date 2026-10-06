@@ -6,6 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
+        @include('layouts.partials.favicons')
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -24,6 +25,10 @@
 
             <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
                 {{ $slot }}
+            </div>
+
+            <div class="text-center mt-4">
+                @include('layouts.partials.developer-credit')
             </div>
         </div>
     </body>

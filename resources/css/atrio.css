@@ -1,0 +1,84 @@
+/*
+ * Marca del desarrollador: ATRIO (estudio de software de Andrés Triviño).
+ * Guía de marca: Noche #1E1726, Oro #E8C26A, Cobre #B4743A, Ciruela #7A4588,
+ * Índigo #2E5A8C, Niebla #F4F1F6. Chakra Petch solo para el nombre; el degradado
+ * solo en el símbolo y en franjas de acento.
+ *
+ * Aparece únicamente como crédito ("Desarrollado por ATRIO"): Cargo Express
+ * conserva su nombre, sus colores y su tipografía. Lo pinta <x-atrio-brand>.
+ */
+
+/* Chakra Petch 700, subconjunto latino (licencia OFL-1.1). Se sirve desde el
+   propio build: el hosting no depende de un CDN de fuentes para el login. */
+@font-face {
+    font-family: 'Chakra Petch';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('../fonts/chakra-petch-latin-700-normal.woff2') format('woff2');
+}
+
+/* Sobre fondos claros: tinta clara dentro de la placa, "AT" en oro oscuro. */
+:root {
+    --atrio-ink: #f4f1f6;
+    --atrio-at: #9a5f2c;
+    --atrio-rio: #1e1726;
+    --atrio-gradient: linear-gradient(90deg, #e8c26a, #b4743a, #7a4588, #2e5a8c);
+}
+
+/* Sobre fondos oscuros (p. ej. el fondo del login): tinta Noche, "AT" en Oro. */
+[data-bs-theme='dark'] {
+    --atrio-ink: #1e1726;
+    --atrio-at: #e8c26a;
+    --atrio-rio: #f4f1f6;
+}
+
+.atrio-brand {
+    gap: 0.45em;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.atrio-mark {
+    flex: 0 0 auto;
+}
+
+.atrio-mark-ink {
+    fill: var(--atrio-ink);
+}
+
+.atrio-wordmark {
+    font-family: 'Chakra Petch', var(--bs-font-sans-serif);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--atrio-rio);
+    padding-top: 0.08em; /* centrado óptico junto a la placa */
+}
+
+.atrio-wordmark-at {
+    color: var(--atrio-at);
+}
+
+/* Línea "Desarrollado por ATRIO" (pie de la aplicación y pantallas de acceso). */
+.developer-credit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--bs-secondary-color);
+    font-size: 0.875rem;
+}
+
+/* Franja de acento de la marca: solo en el diálogo "Acerca del sistema". */
+.atrio-stripe {
+    height: 4px;
+    background: var(--atrio-gradient);
+}
+
+.about-system .modal-content {
+    overflow: hidden; /* la franja respeta las esquinas redondeadas */
+}
+
+.about-system .about-system-icon {
+    font-size: 3rem;
+    line-height: 1;
+}

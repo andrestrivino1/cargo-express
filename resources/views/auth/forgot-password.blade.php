@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Recuperar Contraseña - Cargo Express</title>
+    @include('layouts.partials.favicons')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         body {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
         }
@@ -121,6 +123,11 @@
         <div class="card-footer text-center py-3 bg-light" style="border-radius: 0 0 16px 16px;">
             <small class="text-muted">&copy; {{ date('Y') }} Cargo Express</small>
         </div>
+    </div>
+
+    {{-- Crédito del desarrollador, fuera de la tarjeta: el fondo es oscuro y la marca usa su variante clara. --}}
+    <div class="mt-4" data-bs-theme="dark">
+        @include('layouts.partials.developer-credit')
     </div>
 </body>
 </html>

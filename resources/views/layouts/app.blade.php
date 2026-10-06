@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'Cargo Express') }}</title>
+    @include('layouts.partials.favicons')
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -161,6 +162,11 @@
                             <li>
                                 <a class="dropdown-item" href="{{ route('profile.edit') }}">
                                     <i class="bi bi-person me-1"></i> Mi Perfil
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#modalAcercaSistema" data-bs-toggle="modal" data-bs-target="#modalAcercaSistema" data-about-link>
+                                    <i class="bi bi-info-circle me-1"></i> Acerca del sistema
                                 </a>
                             </li>
                             <li><hr class="dropdown-divider"></li>
@@ -432,8 +438,16 @@
 
     <!-- Footer -->
     <footer class="bg-light text-center text-muted py-3 border-top @guest ms-0 @endguest">
-        <small>&copy; {{ date('Y') }} Cargo Express. Todos los derechos reservados.</small>
+        <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-2 gap-md-3 px-3">
+            <small>&copy; {{ date('Y') }} Cargo Express. Todos los derechos reservados.</small>
+            <div class="vr d-none d-md-block"></div>
+            @include('layouts.partials.developer-credit')
+        </div>
     </footer>
+
+    @auth
+    @include('layouts.partials.about-modal')
+    @endauth
 
     <!-- Sidebar Toggle Script -->
     <script>
